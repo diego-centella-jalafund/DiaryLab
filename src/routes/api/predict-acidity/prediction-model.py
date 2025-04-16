@@ -3,7 +3,7 @@ import joblib
 from datetime import datetime, timedelta
 import numpy as np
 
-model = joblib.load('acidez_model.pkl')
+model = joblib.load('acidity_model.pkl')
 
 last_date = datetime.now().date()
 reference_date = pd.to_datetime('2024-04-14').date()

@@ -94,4 +94,4 @@ model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)
 
-joblib.dump(model, 'acidez_model.pkl')
+joblib.dump(model, 'acidity_model.pkl')
