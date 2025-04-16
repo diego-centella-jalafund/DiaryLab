@@ -39,6 +39,7 @@
 		"@sveltejs/kit": "^2.16.0",
 		"@sveltejs/package": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"@types/node": "^22.14.1",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
@@ -54,5 +55,11 @@
 	},
 	"keywords": [
 		"svelte"
-	]
+	],
+	"dependencies": {
+		"chart.js": "^4.4.8",
+		"jwt-decode": "^4.0.0",
+		"keycloak-js": "^26.1.4",
+		"pg": "^8.14.1"
+	}
 }
