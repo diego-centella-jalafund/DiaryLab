@@ -4,15 +4,15 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: usuario
-      POSTGRES_PASSWORD: clave
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: midb
     ports:
       - "5439:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U usuario -d midb"]
+      test: ["CMD-SHELL", "pg_isready -U user -d midb"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -25,8 +25,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://db:5432/midb
-      KC_DB_USERNAME: usuario
-      KC_DB_PASSWORD: clave
+      KC_DB_USERNAME: user
+      KC_DB_PASSWORD: password
       QUARKUS_DATASOURCE_JDBC_ACQUISITION_TIMEOUT: 60s
       QUARKUS_DATASOURCE_JDBC_MAX_SIZE: 20
       QUARKUS_DATASOURCE_JDBC_MIN_SIZE: 2

@@ -3,10 +3,10 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 const pool = new Pool({
-    user: 'usuario',
+    user: 'user',
     host: 'localhost',
     database: 'midb',
-    password: 'clave',
+    password: 'password',
     port: 5439
 });
 
@@ -14,24 +14,23 @@ export async function GET() {
     try {
         const result = await pool.query(`
             SELECT 
-                fecha,
-                ph_20c_tarde, ph_20c_madrugrada, ph_20c_gmp2
-            FROM leche_cruda
-            ORDER BY fecha;
+                date,
+                ph_20c_evening, ph_20c_early_morning, ph_20c_gmp2
+            FROM raw_milk
+            ORDER BY date;
         `);
 
         const transformedData = result.rows.map(row => ({
-            fecha: row.fecha,
+            date: row.date,
             ph_20c: {
-                tarde: row.ph_20c_tarde,
-                madrugrada: row.ph_20c_madrugrada,
+                evening: row.ph_20c_evening,
+                earlyMorning: row.ph_20c_early_morning,
                 gmp2: row.ph_20c_gmp2
             }
         }));
 
         return json({ success: true, data: transformedData }, { status: 200 });
     } catch (error) {
-        console.error('Error fetching data:', error);
         return json({ success: false, error: error.message }, { status: 500 });
     }
 }

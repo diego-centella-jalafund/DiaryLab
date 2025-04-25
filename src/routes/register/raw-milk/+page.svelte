@@ -6,109 +6,106 @@
 
     let user: User | null = null;
 
-    let fecha = '';
-    let fechaAnalisis = '';
-    let nMuestraTarde = '';
-    let nMuestraMadrugrada = '';
-    let nMuestraGmp2 = '';
-    let horaMuestreoTarde = '';
-    let horaMuestreoMadrugrada = '';
-    let horaMuestreoGmp2 = '';
-    let tempMuestreoTarde = '';
-    let tempMuestreoMadrugrada = '';
-    let tempMuestreoGmp2 = '';
-
-    let ph20CTarde = '';
-    let ph20CMadrugrada = '';
+    let date = '';
+    let analysisDate = '';
+    let sampleNumberEvening = '';
+    let sampleNumberEarlyMorning = '';
+    let sampleNumberGmp2 = '';
+    let samplingTimeEvening = '';
+    let samplingTimeEarlyMorning = '';
+    let samplingTimeGmp2 = '';
+    let samplingTemperatureEvening = '';
+    let samplingTemperatureEarlyMorning = '';
+    let samplingTemperatureGmp2 = '';
+    let ph20CEvening = '';
+    let ph20CEarlyMorning = '';
     let ph20CGmp2 = '';
-    let temperaturaTarde = '';
-    let temperaturaMadrugrada = '';
-    let temperaturaGmp2 = '';
-    let acidezTituableTarde = '';
-    let acidezTituableMadrugrada = '';
-    let acidezTituableGmp2 = '';
-    let densidad20CTarde = '';
-    let densidad20CMadrugrada = '';
-    let densidad20CGmp2 = '';
-    let materiaGrasaTarde = '';
-    let materiaGrasaMadrugrada = '';
-    let materiaGrasaGmp2 = '';
-    let solidosNoGrasosTarde = '';
-    let solidosNoGrasosMadrugrada = '';
-    let solidosNoGrasosGmp2 = '';
-    let alcoholimetriaTarde = '';
-    let alcoholimetriaMadrugrada = '';
-    let alcoholimetriaGmp2 = '';
-    let tramTarde = '';
-    let tramMadrugrada = '';
+    let temperatureEvening = '';
+    let temperatureEarlyMorning = '';
+    let temperatureGmp2 = '';
+    let titratableAcidityEvening = '';
+    let titratableAcidityEarlyMorning = '';
+    let titratableAcidityGmp2 = '';
+    let density20CEvening = '';
+    let density20CEarlyMorning = '';
+    let density20CGmp2 = '';
+    let fatContentEvening = '';
+    let fatContentEarlyMorning = '';
+    let fatContentGmp2 = '';
+    let nonFatSolidsEvening = '';
+    let nonFatSolidsEarlyMorning = '';
+    let nonFatSolidsGmp2 = '';
+    let alcoholTestEvening = '';
+    let alcoholTestEarlyMorning = '';
+    let alcoholTestGmp2 = '';
+    let tramEvening = '';
+    let tramEarlyMorning = '';
     let tramGmp2 = '';
 
     onMount(() => {
-        console.log('+page.svelte (Leche Cruda) mounted, checking params...');
         Registry.auth.checkParams();
         Registry.auth.getUser().subscribe((data: User) => {
             user = data;
-            console.log('User in +page.svelte (Leche Cruda):', user);
         });
     });
 
     async function saveForm() {
         const formData = {
-            fecha,
-            fechaAnalisis,
-            nMuestra: {
-                tarde: nMuestraTarde,
-                madrugrada: nMuestraMadrugrada,
-                gmp2: nMuestraGmp2
+            date,
+            analysisDate,
+            sampleNumber: {
+                evening: sampleNumberEvening,
+                earlyMorning: sampleNumberEarlyMorning,
+                gmp2: sampleNumberGmp2
             },
-            horaMuestreo: {
-                tarde: horaMuestreoTarde,
-                madrugrada: horaMuestreoMadrugrada,
-                gmp2: horaMuestreoGmp2
+            samplingTime: {
+                evening: samplingTimeEvening,
+                earlyMorning: samplingTimeEarlyMorning,
+                gmp2: samplingTimeGmp2
             },
-            tempMuestreo: {
-                tarde: tempMuestreoTarde,
-                madrugrada: tempMuestreoMadrugrada,
-                gmp2: tempMuestreoGmp2
+            samplingTemperature: {
+                evening: samplingTemperatureEvening,
+                earlyMorning: samplingTemperatureEarlyMorning,
+                gmp2: samplingTemperatureGmp2
             },
             ph20C: {
-                tarde: ph20CTarde,
-                madrugrada: ph20CMadrugrada,
+                evening: ph20CEvening,
+                earlyMorning: ph20CEarlyMorning,
                 gmp2: ph20CGmp2
             },
-            temperatura: {
-                tarde: temperaturaTarde,
-                madrugrada: temperaturaMadrugrada,
-                gmp2: temperaturaGmp2
+            temperature: {
+                evening: temperatureEvening,
+                earlyMorning: temperatureEarlyMorning,
+                gmp2: temperatureGmp2
             },
-            acidezTituable: {
-                tarde: acidezTituableTarde,
-                madrugrada: acidezTituableMadrugrada,
-                gmp2: acidezTituableGmp2
+            titratableAcidity: {
+                evening: titratableAcidityEvening,
+                earlyMorning: titratableAcidityEarlyMorning,
+                gmp2: titratableAcidityGmp2
             },
-            densidad20C: {
-                tarde: densidad20CTarde,
-                madrugrada: densidad20CMadrugrada,
-                gmp2: densidad20CGmp2
+            density20C: {
+                evening: density20CEvening,
+                earlyMorning: density20CEarlyMorning,
+                gmp2: density20CGmp2
             },
-            materiaGrasa: {
-                tarde: materiaGrasaTarde,
-                madrugrada: materiaGrasaMadrugrada,
-                gmp2: materiaGrasaGmp2
+            fatContent: {
+                evening: fatContentEvening,
+                earlyMorning: fatContentEarlyMorning,
+                gmp2: fatContentGmp2
             },
-            solidosNoGrasos: {
-                tarde: solidosNoGrasosTarde,
-                madrugrada: solidosNoGrasosMadrugrada,
-                gmp2: solidosNoGrasosGmp2
+            nonFatSolids: {
+                evening: nonFatSolidsEvening,
+                earlyMorning: nonFatSolidsEarlyMorning,
+                gmp2: nonFatSolidsGmp2
             },
-            alcoholimetria: {
-                tarde: alcoholimetriaTarde,
-                madrugrada: alcoholimetriaMadrugrada,
-                gmp2: alcoholimetriaGmp2
+            alcoholTest: {
+                evening: alcoholTestEvening,
+                earlyMorning: alcoholTestEarlyMorning,
+                gmp2: alcoholTestGmp2
             },
             tram: {
-                tarde: tramTarde,
-                madrugrada: tramMadrugrada,
+                evening: tramEvening,
+                earlyMorning: tramEarlyMorning,
                 gmp2: tramGmp2
             }
         };
@@ -123,13 +120,12 @@
             });
 
             if (response.ok) {
-                alert('Datos guardados exitosamente');
+                alert('upload data sucess');
             } else {
-                alert('Error al guardar los datos');
+                alert('error to upload data');
             }
         } catch (error) {
-            console.error('Error saving form data:', error);
-            alert('Error al guardar los datos');
+            alert('error to save data');
         }
     }
 </script>
@@ -137,130 +133,130 @@
 <AuthGuard manual={true} forceLogin={true}>
     <div slot="authed" let:user>
         <section class="form-section">
-            <h1>Informe de Análisis Leche Cruda</h1>
+            <h1>Raw milk analisis inform</h1>
             <form on:submit|preventDefault={saveForm}>
                 <div class="date-section">
                     <div class="form-row">
-                        <label>Fecha:</label>
-                        <input type="date" bind:value={fecha} />
+                        <label>Date:</label>
+                        <input type="date" bind:value={date} />
                     </div>
                     <div class="form-row">
-                        <label>Fecha de Análisis:</label>
-                        <input type="date" bind:value={fechaAnalisis} />
+                        <label>Analisis date:</label>
+                        <input type="date" bind:value={analysisDate} />
                     </div>
                 </div>
 
                 <div class="section">
-                    <h2>Información General</h2>
+                    <h2>General information</h2>
                     <table class="info-general-table">
                         <thead>
                             <tr>
                                 <th></th>
-                                <th>TARDE</th>
-                                <th>MADRUgada</th>
+                                <th>Afternoon</th>
+                                <th>Morning</th>
                                 <th>GMP 2</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>N° Muestra</td>
-                                <td><input type="text" bind:value={nMuestraTarde} /></td>
-                                <td><input type="text" bind:value={nMuestraMadrugrada} /></td>
-                                <td><input type="text" bind:value={nMuestraGmp2} /></td>
+                                <td>N° Sample</td>
+                                <td><input type="text" bind:value={sampleNumberEvening} /></td>
+                                <td><input type="text" bind:value={sampleNumberEarlyMorning} /></td>
+                                <td><input type="text" bind:value={sampleNumberGmp2} /></td>
                             </tr>
                             <tr>
-                                <td>Hora de muestreo</td>
-                                <td><input type="time" bind:value={horaMuestreoTarde} /></td>
-                                <td><input type="time" bind:value={horaMuestreoMadrugrada} /></td>
-                                <td><input type="time" bind:value={horaMuestreoGmp2} /></td>
+                                <td>Sample hour</td>
+                                <td><input type="time" bind:value={samplingTimeEvening} /></td>
+                                <td><input type="time" bind:value={samplingTimeEarlyMorning} /></td>
+                                <td><input type="time" bind:value={samplingTimeGmp2} /></td>
                             </tr>
                             <tr>
-                                <td>Temp. muestreo °C</td>
-                                <td><input type="number" step="0.1" bind:value={tempMuestreoTarde} /></td>
-                                <td><input type="number" step="0.1" bind:value={tempMuestreoMadrugrada} /></td>
-                                <td><input type="number" step="0.1" bind:value={tempMuestreoGmp2} /></td>
+                                <td>Sample Temperature °C</td>
+                                <td><input type="number" bind:value={samplingTemperatureEvening} /></td>
+                                <td><input type="number" bind:value={samplingTemperatureEarlyMorning} /></td>
+                                <td><input type="number" bind:value={samplingTemperatureGmp2} /></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="section">
-                    <h2>Información Fisicoquímica</h2>
+                    <h2>Physicochemical information</h2>
                     <table class="results-table">
                         <thead>
                             <tr>
-                                <th>PARÁMETRO</th>
-                                <th>UNID.</th>
-                                <th>TARDE</th>
-                                <th>MADRUgada</th>
+                                <th>Parameter</th>
+                                <th>Unit</th>
+                                <th>Afternoon</th>
+                                <th>Morning</th>
                                 <th>GMP 2</th>
-                                <th>RANGO (*)</th>
-                                <th>MÉTODO DE ENSAYO</th>
+                                <th>Range</th>
+                                <th>Test method</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>pH a 20°C</td>
-                                <td>Unid. de pH</td>
-                                <td><input type="number" step="0.01" bind:value={ph20CTarde} /></td>
-                                <td><input type="number" step="0.01" bind:value={ph20CMadrugrada} /></td>
+                                <td>pH Unity</td>
+                                <td><input type="number" step="0.01" bind:value={ph20CEvening} /></td>
+                                <td><input type="number" step="0.01" bind:value={ph20CEarlyMorning} /></td>
                                 <td><input type="number" step="0.01" bind:value={ph20CGmp2} /></td>
                                 <td>6.60 a 6.80</td>
-                                <td>Potenciométrico</td>
+                                <td>Potentiometric</td>
                             </tr>
                             <tr>
-                                <td>Temperatura</td>
+                                <td>Temperature</td>
                                 <td>°C</td>
-                                <td><input type="number" step="0.1" bind:value={temperaturaTarde} /></td>
-                                <td><input type="number" step="0.1" bind:value={temperaturaMadrugrada} /></td>
-                                <td><input type="number" step="0.1" bind:value={temperaturaGmp2} /></td>
+                                <td><input type="number" step="0.1" bind:value={temperatureEvening} /></td>
+                                <td><input type="number" step="0.1" bind:value={temperatureEarlyMorning} /></td>
+                                <td><input type="number" step="0.1"bind:value={temperatureGmp2} /></td>
                                 <td>15 a 25</td>
-                                <td>Termómetro</td>
+                                <td>Thermometer</td>
                             </tr>
                             <tr>
-                                <td>Acidez Titulable</td>
-                                <td>% Ác. Láctico</td>
-                                <td><input type="number" step="0.01" bind:value={acidezTituableTarde} /></td>
-                                <td><input type="number" step="0.01" bind:value={acidezTituableMadrugrada} /></td>
-                                <td><input type="number" step="0.01" bind:value={acidezTituableGmp2} /></td>
+                                <td>Titratable acidity</td>
+                                <td>%Lactic acid</td>
+                                <td><input type="number" step="0.01" bind:value={titratableAcidityEvening} /></td>
+                                <td><input type="number" step="0.01" bind:value={titratableAcidityEarlyMorning} /></td>
+                                <td><input type="number" step="0.01" bind:value={titratableAcidityGmp2} /></td>
                                 <td>0.13 a 0.18</td>
-                                <td>Método volumétrico</td>
+                                <td>Volumetric method</td>
                             </tr>
                             <tr>
-                                <td>Densidad a 20°C</td>
+                                <td>Densidity to 20°C</td>
                                 <td>g/cm³</td>
-                                <td><input type="number" step="0.001" bind:value={densidad20CTarde} /></td>
-                                <td><input type="number" step="0.001" bind:value={densidad20CMadrugrada} /></td>
-                                <td><input type="number" step="0.001" bind:value={densidad20CGmp2} /></td>
+                                <td><input type="number" step="0.001" bind:value={density20CEvening} /></td>
+                                <td><input type="number" step="0.001" bind:value={density20CEarlyMorning} /></td>
+                                <td><input type="number" step="0.001" bind:value={density20CGmp2} /></td>
                                 <td>1.028 a 1.034</td>
-                                <td>Lactodensímetro</td>
+                                <td>Lactodensimeter</td>
                             </tr>
                             <tr>
-                                <td>Materia Grasa</td>
+                                <td>Fat matter</td>
                                 <td>%</td>
-                                <td><input type="number" step="0.1" bind:value={materiaGrasaTarde} /></td>
-                                <td><input type="number" step="0.1" bind:value={materiaGrasaMadrugrada} /></td>
-                                <td><input type="number" step="0.1" bind:value={materiaGrasaGmp2} /></td>
+                                <td><input type="number" step="0.1" bind:value={fatContentEvening} /></td>
+                                <td><input type="number" step="0.1" bind:value={fatContentEarlyMorning} /></td>
+                                <td><input type="number" step="0.1" bind:value={fatContentGmp2} /></td>
                                 <td>Min. 3.00</td>
-                                <td>Método Gerber</td>
+                                <td>Gerbe Method</td>
                             </tr>
                             <tr>
-                                <td>Sólidos no Grasos</td>
+                                <td>Non-Fat solids</td>
                                 <td>%</td>
-                                <td><input type="number" step="0.1" bind:value={solidosNoGrasosTarde} /></td>
-                                <td><input type="number" step="0.1" bind:value={solidosNoGrasosMadrugrada} /></td>
-                                <td><input type="number" step="0.1" bind:value={solidosNoGrasosGmp2} /></td>
+                                <td><input type="number" step="0.1" bind:value={nonFatSolidsEvening} /></td>
+                                <td><input type="number" step="0.1" bind:value={nonFatSolidsEarlyMorning} /></td>
+                                <td><input type="number" step="0.1" bind:value={nonFatSolidsGmp2} /></td>
                                 <td>Min. 8.2</td>
-                                <td>Lactómetro de Bucziki</td>
+                                <td>Bucziki's lactometer</td>
                             </tr>
                             <tr>
-                                <td>Alcoholimetría</td>
+                                <td>Alcoholimetry</td>
                                 <td>-</td>
-                                <td><input type="text" bind:value={alcoholimetriaTarde} /></td>
-                                <td><input type="text" bind:value={alcoholimetriaMadrugrada} /></td>
-                                <td><input type="text" bind:value={alcoholimetriaGmp2} /></td>
-                                <td>Negativa</td>
-                                <td>Prueba de Alcohol al 79%</td>
+                                <td><input type="text" bind:value={alcoholTestEvening} /></td>
+                                <td><input type="text" bind:value={alcoholTestEarlyMorning} /></td>
+                                <td><input type="text" bind:value={alcoholTestGmp2} /></td>
+                                <td>Negative</td>
+                                <td>Alcohol Test to 79%</td>
                             </tr>
                         </tbody>
                     </table>
@@ -268,41 +264,41 @@
 
 
                 <div class="section">
-                    <h2>Información Microbiológica</h2>
+                    <h2>Microbiologic information</h2>
                     <table class="results-table">
                         <thead>
                             <tr>
-                                <th>PARÁMETRO</th>
-                                <th>UNID.</th>
-                                <th>TARDE</th>
-                                <th>MADRUgada</th>
+                                <th>Parameter</th>
+                                <th>Unit</th>
+                                <th>Afternoon</th>
+                                <th>Morning</th>
                                 <th>GMP 2</th>
-                                <th>RANGO (*)</th>
-                                <th>MÉTODO DE ENSAYO</th>
+                                <th>Range</th>
+                                <th>Test method</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>TRAM (Tiempo de reducción de metileno)</td>
+                                <td>TRAM (Methylene reduction time)</td>
                                 <td>h</td>
-                                <td><input type="text" bind:value={tramTarde} /></td>
-                                <td><input type="text" bind:value={tramMadrugrada} /></td>
+                                <td><input type="text" bind:value={tramEvening} /></td>
+                                <td><input type="text" bind:value={tramEarlyMorning} /></td>
                                 <td><input type="text" bind:value={tramGmp2} /></td>
                                 <td>> 1h</td>
-                                <td>Prueba de reductasa</td>
+                                <td>Reductase test</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit">Guardar</button>
+                    <button type="submit">Save</button>
                 </div>
             </form>
         </section>
     </div>
     <div slot="not_authed">
-        <p>Por favor, inicia sesión para acceder a DiaryLab</p>
+        <p>Log in for join to DiaryLab</p>
     </div>
 </AuthGuard>
 

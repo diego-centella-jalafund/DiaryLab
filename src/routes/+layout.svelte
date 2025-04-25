@@ -4,31 +4,26 @@
     import type { User } from '$lib/auth/User';
 
     let user: User | null = null;
-    let isRegistroMenuOpen = false;
+    let isRegisterMenuOpenn = false;
 
     onMount(() => {
-        console.log('Layout mounted, initializing Keycloak...');
         Registry.auth.inBrowserInit();
         Registry.auth.checkParams();
         Registry.auth.getUser().subscribe((data: User) => {
             user = data;
-            console.log('User in layout:', user);
             if (!user) {
-                console.log('No user, forcing Keycloak login...');
                 Registry.auth.login({ redirectUri: location.href });
             }
         });
     });
 
     function logout() {
-        console.log('Logging out...');
         Registry.auth.logout();
         user = null;
     }
 
-    function toggleRegistroMenu() {
-        isRegistroMenuOpen = !isRegistroMenuOpen;
-        console.log('Registro menu toggled:', isRegistroMenuOpen);
+    function menuRegisterOption() {
+        isRegisterMenuOpenn = !isRegisterMenuOpenn;
     }
 </script>
 
@@ -41,26 +36,26 @@
         </div>
         <div class="nav-links">
             <div class="dropdown">
-                <button class="menu-btn" on:click={toggleRegistroMenu}>
-                    Registro <span class="arrow">▼</span>
+                <button class="menu-btn" on:click={menuRegisterOption}>
+                    Register <span class="arrow">▼</span>
                 </button>
-                {#if isRegistroMenuOpen}
+                {#if isRegisterMenuOpenn}
                     <ul class="dropdown-menu">
-                        <li><a href="/register/raw-milk" on:click={toggleRegistroMenu}>Leche Cruda</a></li>
-                        <li><a href="/register/yogurt-probiotico" on:click={toggleRegistroMenu}>Yogurt Probiótico</a></li>
-                        <li><a href="/register/yogurt-saborizado" on:click={toggleRegistroMenu}>Yogurt Saborizado</a></li>
-                        <li><a href="/register/yogurt-sin-azucar" on:click={toggleRegistroMenu}>Yogurt Sin Azúcar</a></li>
-                        <li><a href="/register/yogurt-frutado" on:click={toggleRegistroMenu}>Yogurt Frutado</a></li>
-                        <li><a href="/register/queso-semimaduro" on:click={toggleRegistroMenu}>Queso Semimaduro</a></li>
-                        <li><a href="/register/mantequilla" on:click={toggleRegistroMenu}>Mantequilla</a></li>
+                        <li><a href="/register/raw-milk" on:click={menuRegisterOption}>Raw Milk</a></li>
+                        <li><a href="/register/yogurt-probiotic" on:click={menuRegisterOption}>Yogurt Probiotic</a></li>
+                        <li><a href="/register/yogurt-flavored" on:click={menuRegisterOption}>Yogurt Flavored</a></li>
+                        <li><a href="/register/yogurt-no-sugar" on:click={menuRegisterOption}>Yogurt no Sugar</a></li>
+                        <li><a href="/register/yogurt-fruity" on:click={menuRegisterOption}>Yogurt Fruity</a></li>
+                        <li><a href="/register/semi-ripe-cheese" on:click={menuRegisterOption}>Semi-ripe Cheese</a></li>
+                        <li><a href="/register/butter" on:click={menuRegisterOption}>Butter</a></li>
                     </ul>
                 {/if}
             </div>
-            <a href="/evaluation" class="nav-link">Evaluación</a>
-            <a href="/reports-samples" class="nav-link">Reportes Muestras</a>
-            <a href="/reports-prediction" class="nav-link">Reportes Predicción</a>
+            <a href="/evaluation" class="nav-link">Evaluation</a>
+            <a href="/reports-samples" class="nav-link">Samples report</a>
+            <a href="/reports-prediction" class="nav-link">Prediction Report</a>
         </div>
-        <button class="logout-btn" on:click={logout}>Cerrar sesión</button>
+        <button class="logout-btn" on:click={logout}>Log out</button>
     </div>
 </nav>
 

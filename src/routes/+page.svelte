@@ -7,14 +7,12 @@
     let user: User | null = null;
 
     onMount(() => {
-        console.log('+page.svelte mounted, checking params...');
         Registry.auth.checkParams();
         Registry.auth.getUser().subscribe((data: User) => {
             user = data;
-            console.log('User in +page.svelte:', user);
         });
 
-        
+
     });
 </script>
 
@@ -52,15 +50,11 @@
                     src="/images/labDairy3.jpeg" 
                     alt="Lab Dashboard" 
                     class="mockup mockup-1" 
-                    on:error={() => console.error('Image 1 failed to load in DOM')}
-                    on:load={() => console.log('Image 1 loaded in DOM')}
                 />
                 <img 
                     src="/images/labDairy2.png" 
                     alt="Lab Equipment" 
                     class="mockup mockup-2" 
-                    on:error={() => console.error('Image 2 failed to load in DOM')}
-                    on:load={() => console.log('Image 2 loaded in DOM')}
                 />
             </div>
         </section>
@@ -75,7 +69,7 @@
         </section>
     </div>
     <div slot="not_authed">
-        <p>Por favor, inicia sesión para acceder a DiaryLab</p>
+        <p>log in for enter to DairyLab</p>
     </div>
 </AuthGuard>
 

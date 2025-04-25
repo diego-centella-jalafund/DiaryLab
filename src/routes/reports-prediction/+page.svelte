@@ -10,10 +10,10 @@
             if (response.ok) {
                 predictions = data.predictions;
             } else {
-                error = data.error || 'Error desconocido al obtener las predicciones';
+                error = data.error || 'erro to obtain predictions';
             }
         } catch (err) {
-            error = `Error de red: ${err.message}`;
+            error = `Error an ocurred: ${err.message}`;
         } finally {
             loading = false;
         }
@@ -21,33 +21,31 @@
     fetchPredictions();
 </script>
 
-<h1>Reportes de Predicción - Acidez Titulable</h1>
+<h1>Prediction Report - Titratable Acidity</h1>
 
 {#if error}
     <p style="color: red;">Error: {error}</p>
 {/if}
 
-{#if loading}
-    <p>Cargando predicciones...</p>
-{:else if predictions.length > 0}
+{#if predictions.length > 0}
     <table>
         <thead>
             <tr>
-                <th>Fecha</th>
-                <th>Acidez Titulable Predicha (% Titulacion)</th>
+                <th>Date</th>
+                <th>Titratable Acidity Predicted (% Titratable)</th>
             </tr>
         </thead>
         <tbody>
             {#each predictions as pred}
                 <tr>
-                    <td>{pred.fecha}</td>
-                    <td>{pred.acidez_tituable_predicha}</td>
+                    <td>{pred.date}</td>
+                    <td>{pred.titratable_acidity_predicted}</td>
                 </tr>
             {/each}
         </tbody>
     </table>
 {:else}
-    <p>No se encontraron predicciones.</p>
+    <p>Predictions not found.</p>
 {/if}
 
 <style>
