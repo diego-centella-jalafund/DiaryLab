@@ -5,8 +5,8 @@ from datetime import datetime
 DB_HOST = "localhost"
 DB_PORT = "5439"
 DB_NAME = "midb"
-DB_USER = "usuario"
-DB_PASS = "clave"
+DB_USER = "user"
+DB_PASS = "password"
 
 conn = psycopg2.connect(
     host=DB_HOST,
@@ -19,16 +19,16 @@ cursor = conn.cursor()
 
 query = """
     SELECT 
-        fecha,
-        temperatura_tarde, temperatura_madrugrada, temperatura_gmp2,
-        ph_20c_tarde, ph_20c_madrugrada, ph_20c_gmp2,
-        materia_grasa_tarde, materia_grasa_madrugrada, materia_grasa_gmp2,
-        solidos_no_grasos_tarde, solidos_no_grasos_madrugrada, solidos_no_grasos_gmp2,
-        densidad_20c_tarde, densidad_20c_madrugrada, densidad_20c_gmp2,
-        acidez_tituable_tarde, acidez_tituable_madrugrada, acidez_tituable_gmp2
-    FROM leche_cruda
-    WHERE fecha IS NOT NULL
-    ORDER BY fecha;
+        date,
+        evening_temperature, early_morning_temperature, gmp2_temperature,
+        ph_20c_evening, ph_20c_early_morning, ph_20c_gmp2,
+        fat_content_evening, fat_content_early_morning, fat_content_gmp2,
+        non_fat_solids_evening, non_fat_solids_early_morning, non_fat_solids_gmp2,
+        density_20c_evening, density_20c_early_morning, density_20c_gmp2,
+        titratable_acidity_evening, titratable_acidity_early_morning, titratable_acidity_gmp2
+    FROM raw_milk
+    WHERE date IS NOT NULL
+    ORDER BY date;
 """
 cursor.execute(query)
 rows = cursor.fetchall()
@@ -37,64 +37,62 @@ cursor.close()
 conn.close()
 
 columns = [
-    'fecha',
-    'temperatura_tarde', 'temperatura_madrugrada', 'temperatura_gmp2',
-    'ph_20c_tarde', 'ph_20c_madrugrada', 'ph_20c_gmp2',
-    'materia_grasa_tarde', 'materia_grasa_madrugrada', 'materia_grasa_gmp2',
-    'solidos_no_grasos_tarde', 'solidos_no_grasos_madrugrada', 'solidos_no_grasos_gmp2',
-    'densidad_20c_tarde', 'densidad_20c_madrugrada', 'densidad_20c_gmp2',
-    'acidez_tituable_tarde', 'acidez_tituable_madrugrada', 'acidez_tituable_gmp2'
+    'date',
+    'evening_temperature', 'early_morning_temperature', 'gmp2_temperature',
+    'ph_20c_evening', 'ph_20c_early_morning', 'ph_20c_gmp2',
+    'fat_content_evening', 'fat_content_early_morning', 'fat_content_gmp2',
+    'non_fat_solids_evening', 'non_fat_solids_early_morning', 'non_fat_solids_gmp2',
+    'density_20c_evening', 'density_20c_early_morning', 'density_20c_gmp2',
+    'titratable_acidity_evening', 'titratable_acidity_early_morning', 'titratable_acidity_gmp2'
 ]
 df = pd.DataFrame(rows, columns=columns)
 
 data = []
 for _, row in df.iterrows():
-    fecha = pd.to_datetime(row['fecha'])
+    fecha = pd.to_datetime(row['date'])
 
-    if pd.notnull(row['acidez_tituable_tarde']):
+    if pd.notnull(row['titratable_acidity_evening']):
         data.append({
-            'fecha': fecha,
+            'date': fecha,
             'days_since_start': 0, 
-            'temperatura': row['temperatura_tarde'],
-            'ph_20c': row['ph_20c_tarde'],
-            'materia_grasa': row['materia_grasa_tarde'],
-            'solidos_no_grasos': row['solidos_no_grasos_tarde'],
-            'densidad_20c': row['densidad_20c_tarde'],
-            'acidez_tituable': row['acidez_tituable_tarde']
+            'temperature': row['evening_temperature'],
+            'ph_20c': row['ph_20c_evening'],
+            'fat_content': row['fat_content_evening'],
+            'non_fat_solids': row['non_fat_solids_evening'],
+            'density_20c': row['density_20c_evening'],
+            'titratable_acidity': row['titratable_acidity_evening']
         })
 
-    if pd.notnull(row['acidez_tituable_madrugrada']):
+    if pd.notnull(row['titratable_acidity_early_morning']):
         data.append({
-            'fecha': fecha,
+            'date': fecha,
             'days_since_start': 0,  
-            'temperatura': row['temperatura_madrugrada'],
-            'ph_20c': row['ph_20c_madrugrada'],
-            'materia_grasa': row['materia_grasa_madrugrada'],
-            'solidos_no_grasos': row['solidos_no_grasos_madrugrada'],
-            'densidad_20c': row['densidad_20c_madrugrada'],
-            'acidez_tituable': row['acidez_tituable_madrugrada']
+            'temperature': row['early_morning_temperature'],
+            'ph_20c': row['ph_20c_early_morning'],
+            'fat_content': row['fat_content_early_morning'],
+            'non_fat_solids': row['non_fat_solids_early_morning'],
+            'density_20c': row['density_20c_early_morning'],
+            'titratable_acidity': row['titratable_acidity_early_morning']
         })
 
-    if pd.notnull(row['acidez_tituable_gmp2']):
+    if pd.notnull(row['titratable_acidity_gmp2']):
         data.append({
-            'fecha': fecha,
+            'date': fecha,
             'days_since_start': 0,  
-            'temperatura': row['temperatura_gmp2'],
+            'temperature': row['gmp2_temperature'],
             'ph_20c': row['ph_20c_gmp2'],
-            'materia_grasa': row['materia_grasa_gmp2'],
-            'solidos_no_grasos': row['solidos_no_grasos_gmp2'],
-            'densidad_20c': row['densidad_20c_gmp2'],
-            'acidez_tituable': row['acidez_tituable_gmp2']
+            'fat_content': row['fat_content_gmp2'],
+            'non_fat_solids': row['non_fat_solids_gmp2'],
+            'density_20c': row['density_20c_gmp2'],
+            'titratable_acidity': row['titratable_acidity_gmp2']
         })
 
 df_transformed = pd.DataFrame(data)
-df_transformed = df_transformed.dropna(subset=['acidez_tituable', 'temperatura', 'ph_20c', 'materia_grasa', 'solidos_no_grasos', 'densidad_20c'])
+df_transformed = df_transformed.dropna(subset=['titratable_acidity', 'temperature', 'ph_20c', 'fat_content', 'non_fat_solids', 'density_20c'])
 
-reference_date = df_transformed['fecha'].min()
-df_transformed['days_since_start'] = (df_transformed['fecha'] - reference_date).dt.days
+reference_date = df_transformed['date'].min()
+df_transformed['days_since_start'] = (df_transformed['date'] - reference_date).dt.days
 
-df_transformed = df_transformed.drop(columns=['fecha'])
+df_transformed = df_transformed.drop(columns=['date'])
 
-df_transformed.to_csv('leche_cruda_data.csv', index=False)
-
-print("Datos extraídos y guardados en leche_cruda_data.csv")
+df_transformed.to_csv('raw_milk_data.csv', index=False)

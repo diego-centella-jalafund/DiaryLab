@@ -9,13 +9,10 @@
     export { forceLogin, manual };
 
     onMount(() => {
-        console.log('AuthGuard mounted, checking params...');
         Registry.auth.checkParams();
         Registry.auth.getUser().subscribe((data: User) => {
             user = data;
-            console.log('AuthGuard user updated:', user);
             if (!user && forceLogin) {
-                console.log('AuthGuard: Forcing login...');
                 Registry.auth.login({ redirectUri: location.href });
             }
         });

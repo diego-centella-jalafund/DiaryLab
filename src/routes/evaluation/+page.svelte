@@ -13,17 +13,17 @@
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: chartData.map(row => row.fecha),
+                labels: chartData.map(row => row.date),
                 datasets: [
                     {
-                        label: 'pH a 20°C (Tarde)',
-                        data: chartData.map(row => row.ph_20c.tarde),
+                        label: 'pH a 20°C (Afternoon)',
+                        data: chartData.map(row => row.ph_20c.evening),
                         borderColor: 'blue',
                         fill: false
                     },
                     {
-                        label: 'pH a 20°C (Madrugrada)',
-                        data: chartData.map(row => row.ph_20c.madrugrada),
+                        label: 'pH a 20°C (Early morning)',
+                        data: chartData.map(row => row.ph_20c.earlyMorning),
                         borderColor: 'green',
                         fill: false
                     },
@@ -48,9 +48,9 @@
 </script>
 
 <div class="report-section">
-    <h1>Reportes de Muestras - Leche Cruda</h1>
+    <h1>Sample evaluation report - raw milk</h1>
     <div class="chart-container">
-        <h2>pH a 20°C Over Time</h2>
+        <h2>pH to 20°C</h2>
         <canvas id="phChart"></canvas>
     </div>
 </div>

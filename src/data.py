@@ -6,27 +6,27 @@ from datetime import datetime, timedelta, time
 DB_HOST = "localhost"
 DB_PORT = "5439"
 DB_NAME = "midb"
-DB_USER = "usuario"
-DB_PASS = "clave"
+DB_USER = "user"
+DB_PASS = "password"
 
 def random_date():
     start_date = datetime.now() - timedelta(days=365)
     random_days = random.randint(0, 365)
     return start_date + timedelta(days=random_days)
 
-def random_timeTarde():
+def random_time_evening():
     hour = random.randint(15, 18)  
     minute = random.randint(0, 59)
     second = random.randint(0, 59)
     return time(hour, minute, second)
 
-def random_timeMadrugada():
+def random_time_early_morning():
     hour = random.randint(3, 6)  
     minute = random.randint(0, 59)
     second = random.randint(0, 59)
     return time(hour, minute, second)
 
-def random_timeGmp2():
+def random_time_gmp2():
     hour = random.randint(4, 8)  
     minute = random.randint(0, 59)
     second = random.randint(0, 59)
@@ -44,89 +44,88 @@ try:
 
     for i in range(200):
 
-        fecha = random_date().date()
-        fecha_analisis = fecha + timedelta(days=random.randint(0, 3))
+        date = random_date().date()
+        analysis_date = date + timedelta(days=random.randint(0, 3))
 
-    
-        n_muestra_tarde = i
-        n_muestra_madrugrada = i
-        n_muestra_gmp2 = i
+        sample_number_evening = i
+        sample_number_early_morning = i
+        sample_number_gmp2 = i
 
-        hora_muestreo_tarde = random_timeTarde()
-        hora_muestreo_madrugrada = random_timeMadrugada()
-        hora_muestreo_gmp2 = random_timeGmp2()
+        sampling_time_evening = random_time_evening()
+        sampling_time_early_morning = random_time_early_morning()
+        sampling_time_gmp2 = random_time_gmp2()
 
-        temp_muestreo_tarde = round(random.uniform(-2,5), 2)  
-        temp_muestreo_madrugrada = round(random.uniform(20, 25), 2)
-        temp_muestreo_gmp2 = round(random.uniform(-2, 5), 2)
+        sampling_temperature_evening = round(random.uniform(-2, 5), 2)  
+        sampling_temperature_early_morning = round(random.uniform(20, 25), 2)
+        sampling_temperature_gmp2 = round(random.uniform(-2, 5), 2)
 
-        ph_20c_tarde = round(random.uniform(6.60, 6.80), 2)  
-        ph_20c_madrugrada = round(random.uniform(6.60, 6.80), 2)
+        ph_20c_evening = round(random.uniform(6.60, 6.80), 2)  
+        ph_20c_early_morning = round(random.uniform(6.60, 6.80), 2)
         ph_20c_gmp2 = round(random.uniform(6.60, 6.80), 2)
 
-        temperatura_tarde = round(random.uniform(15, 25), 2)  
-        temperatura_madrugrada = round(random.uniform(15, 25), 2)
-        temperatura_gmp2 = round(random.uniform(15, 25), 2)
+        temperature_evening = round(random.uniform(15, 25), 2)  
+        temperature_early_morning = round(random.uniform(15, 25), 2)
+        temperature_gmp2 = round(random.uniform(15, 25), 2)
 
-        acidez_tituable_tarde = round(random.uniform(0.13, 0.18), 2) 
-        acidez_tituable_madrugrada = round(random.uniform(0.13, 0.18), 2)
-        acidez_tituable_gmp2 = round(random.uniform(0.13, 0.18), 2)
+        titratable_acidity_evening = round(random.uniform(0.13, 0.18), 2) 
+        titratable_acidity_early_morning = round(random.uniform(0.13, 0.18), 2)
+        titratable_acidity_gmp2 = round(random.uniform(0.13, 0.18), 2)
 
-        densidad_20c_tarde = round(random.uniform(1.028, 1.034), 3) 
-        densidad_20c_madrugrada = round(random.uniform(1.028, 1.034), 3)
-        densidad_20c_gmp2 = round(random.uniform(1.028, 1.034), 3)
+        density_20c_evening = round(random.uniform(1.028, 1.034), 3) 
+        density_20c_early_morning = round(random.uniform(1.028, 1.034), 3)
+        density_20c_gmp2 = round(random.uniform(1.028, 1.034), 3)
 
-        materia_grasa_tarde = round(random.uniform(3.0, 4.5), 2) 
-        materia_grasa_madrugrada = round(random.uniform(3.0, 4.5), 2)
-        materia_grasa_gmp2 = round(random.uniform(3.0, 4.5), 2)
+        fat_content_evening = round(random.uniform(3.0, 4.5), 2) 
+        fat_content_early_morning = round(random.uniform(3.0, 4.5), 2)
+        fat_content_gmp2 = round(random.uniform(3.0, 4.5), 2)
 
-        solidos_no_grasos_tarde = round(random.uniform(8.2, 9.0), 2) 
-        solidos_no_grasos_madrugrada = round(random.uniform(8.2, 9.0), 2)
-        solidos_no_grasos_gmp2 = round(random.uniform(8.2, 9.0), 2)
+        non_fat_solids_evening = round(random.uniform(8.2, 9.0), 2) 
+        non_fat_solids_early_morning = round(random.uniform(8.2, 9.0), 2)
+        non_fat_solids_gmp2 = round(random.uniform(8.2, 9.0), 2)
 
-        alcoholimetria_tarde = random.choice(["positivo", "negativa"])  
-        alcoholimetria_madrugrada = random.choice(["positivo", "negativa"])
-        alcoholimetria_gmp2 = random.choice(["positivo", "negativa"])
+        alcohol_test_evening = random.choice(["positive", "negative"])  
+        alcohol_test_early_morning = random.choice(["positive", "negative"])
+        alcohol_test_gmp2 = random.choice(["positive", "negative"])
      
-        tram_tarde = round(random.uniform(1.0, 6), 2) 
-        tram_madrugrada = round(random.uniform(1.0, 6), 2) 
-        tram_gmp2 = round(random.uniform(1.0, 6), 2) 
+        tram_evening = round(random.uniform(1.0, 6), 2) 
+        tram_early_morning = round(random.uniform(1.0, 6), 2) 
+        tram_gmp2 = round(random.uniform(1.0, 6), 2)
 
         insert_query = """
-            INSERT INTO leche_cruda (
-                fecha, fecha_analisis,
-                n_muestra_tarde, n_muestra_madrugrada, n_muestra_gmp2,
-                hora_muestreo_tarde, hora_muestreo_madrugrada, hora_muestreo_gmp2,
-                temp_muestreo_tarde, temp_muestreo_madrugrada, temp_muestreo_gmp2,
-                ph_20c_tarde, ph_20c_madrugrada, ph_20c_gmp2,
-                temperatura_tarde, temperatura_madrugrada, temperatura_gmp2,
-                acidez_tituable_tarde, acidez_tituable_madrugrada, acidez_tituable_gmp2,
-                densidad_20c_tarde, densidad_20c_madrugrada, densidad_20c_gmp2,
-                materia_grasa_tarde, materia_grasa_madrugrada, materia_grasa_gmp2,
-                solidos_no_grasos_tarde, solidos_no_grasos_madrugrada, solidos_no_grasos_gmp2,
-                alcoholimetria_tarde, alcoholimetria_madrugrada, alcoholimetria_gmp2,
-                tram_tarde, tram_madrugrada, tram_gmp2
+            INSERT INTO raw_milk (
+                date, analysis_date,
+                evening_sample_number, early_morning_sample_number, gmp2_sample_number,
+                evening_sampling_time, early_morning_sampling_time, gmp2_sampling_time,
+                evening_sampling_temperature, early_morning_sampling_temperature, gmp2_sampling_temperature,
+                ph_20c_evening, ph_20c_early_morning, ph_20c_gmp2,
+                evening_temperature, early_morning_temperature, gmp2_temperature,
+                titratable_acidity_evening, titratable_acidity_early_morning, titratable_acidity_gmp2,
+                density_20c_evening, density_20c_early_morning, density_20c_gmp2,
+                fat_content_evening, fat_content_early_morning, fat_content_gmp2,
+                non_fat_solids_evening, non_fat_solids_early_morning, non_fat_solids_gmp2,
+                alcohol_test_evening, alcohol_test_early_morning, alcohol_test_gmp2,
+                tram_evening, tram_early_morning, tram_gmp2
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(insert_query, (
-            fecha, fecha_analisis,
-            n_muestra_tarde, n_muestra_madrugrada, n_muestra_gmp2,
-            hora_muestreo_tarde, hora_muestreo_madrugrada, hora_muestreo_gmp2,
-            temp_muestreo_tarde, temp_muestreo_madrugrada, temp_muestreo_gmp2,
-            ph_20c_tarde, ph_20c_madrugrada, ph_20c_gmp2,
-            temperatura_tarde, temperatura_madrugrada, temperatura_gmp2,
-            acidez_tituable_tarde, acidez_tituable_madrugrada, acidez_tituable_gmp2,
-            densidad_20c_tarde, densidad_20c_madrugrada, densidad_20c_gmp2,
-            materia_grasa_tarde, materia_grasa_madrugrada, materia_grasa_gmp2,
-            solidos_no_grasos_tarde, solidos_no_grasos_madrugrada, solidos_no_grasos_gmp2,
-            alcoholimetria_tarde, alcoholimetria_madrugrada, alcoholimetria_gmp2,
-            tram_tarde, tram_madrugrada, tram_gmp2
+            date, analysis_date,
+            sample_number_evening, sample_number_early_morning, sample_number_gmp2,
+            sampling_time_evening, sampling_time_early_morning, sampling_time_gmp2,
+            sampling_temperature_evening, sampling_temperature_early_morning, sampling_temperature_gmp2,
+            ph_20c_evening, ph_20c_early_morning, ph_20c_gmp2,
+            temperature_evening, temperature_early_morning, temperature_gmp2,
+            titratable_acidity_evening, titratable_acidity_early_morning, titratable_acidity_gmp2,
+            density_20c_evening, density_20c_early_morning, density_20c_gmp2,
+            fat_content_evening, fat_content_early_morning, fat_content_gmp2,
+            non_fat_solids_evening, non_fat_solids_early_morning, non_fat_solids_gmp2,
+            alcohol_test_evening, alcohol_test_early_morning, alcohol_test_gmp2,
+            tram_evening, tram_early_morning, tram_gmp2
         ))
 
     conn.commit()
-    print("Se insertaron 200 registros en la tabla leche_cruda")
+    print("data uploaded success")
 
 except Exception as e:
     print(f"Error: {e}")
@@ -137,4 +136,4 @@ finally:
         cursor.close()
     if conn:
         conn.close()
-    print("Conexión cerrada")
+    print("connection close")
