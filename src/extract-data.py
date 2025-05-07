@@ -22,14 +22,13 @@ query = """
         date,
         evening_temperature, early_morning_temperature, gmp2_temperature,
         ph_20c_evening, ph_20c_early_morning, ph_20c_gmp2,
-        fat_content_evening, fat_content_early_morning, fat_content_gmp2,
-        non_fat_solids_evening, non_fat_solids_early_morning, non_fat_solids_gmp2,
         density_20c_evening, density_20c_early_morning, density_20c_gmp2,
         titratable_acidity_evening, titratable_acidity_early_morning, titratable_acidity_gmp2
     FROM raw_milk
     WHERE date IS NOT NULL
     ORDER BY date;
 """
+
 cursor.execute(query)
 rows = cursor.fetchall()
 
@@ -40,8 +39,6 @@ columns = [
     'date',
     'evening_temperature', 'early_morning_temperature', 'gmp2_temperature',
     'ph_20c_evening', 'ph_20c_early_morning', 'ph_20c_gmp2',
-    'fat_content_evening', 'fat_content_early_morning', 'fat_content_gmp2',
-    'non_fat_solids_evening', 'non_fat_solids_early_morning', 'non_fat_solids_gmp2',
     'density_20c_evening', 'density_20c_early_morning', 'density_20c_gmp2',
     'titratable_acidity_evening', 'titratable_acidity_early_morning', 'titratable_acidity_gmp2'
 ]
@@ -49,46 +46,40 @@ df = pd.DataFrame(rows, columns=columns)
 
 data = []
 for _, row in df.iterrows():
-    fecha = pd.to_datetime(row['date'])
+    date = pd.to_datetime(row['date'])
 
     if pd.notnull(row['titratable_acidity_evening']):
         data.append({
-            'date': fecha,
-            'days_since_start': 0, 
+            'date': date,
+            'days_since_start': 0,
             'temperature': row['evening_temperature'],
             'ph_20c': row['ph_20c_evening'],
-            'fat_content': row['fat_content_evening'],
-            'non_fat_solids': row['non_fat_solids_evening'],
             'density_20c': row['density_20c_evening'],
             'titratable_acidity': row['titratable_acidity_evening']
         })
 
     if pd.notnull(row['titratable_acidity_early_morning']):
         data.append({
-            'date': fecha,
-            'days_since_start': 0,  
+            'date': date,
+            'days_since_start': 0,
             'temperature': row['early_morning_temperature'],
             'ph_20c': row['ph_20c_early_morning'],
-            'fat_content': row['fat_content_early_morning'],
-            'non_fat_solids': row['non_fat_solids_early_morning'],
             'density_20c': row['density_20c_early_morning'],
             'titratable_acidity': row['titratable_acidity_early_morning']
         })
 
     if pd.notnull(row['titratable_acidity_gmp2']):
         data.append({
-            'date': fecha,
-            'days_since_start': 0,  
+            'date': date,
+            'days_since_start': 0,
             'temperature': row['gmp2_temperature'],
             'ph_20c': row['ph_20c_gmp2'],
-            'fat_content': row['fat_content_gmp2'],
-            'non_fat_solids': row['non_fat_solids_gmp2'],
             'density_20c': row['density_20c_gmp2'],
             'titratable_acidity': row['titratable_acidity_gmp2']
         })
 
 df_transformed = pd.DataFrame(data)
-df_transformed = df_transformed.dropna(subset=['titratable_acidity', 'temperature', 'ph_20c', 'fat_content', 'non_fat_solids', 'density_20c'])
+df_transformed = df_transformed.dropna(subset=['titratable_acidity', 'temperature', 'ph_20c', 'density_20c'])
 
 reference_date = df_transformed['date'].min()
 df_transformed['days_since_start'] = (df_transformed['date'] - reference_date).dt.days
