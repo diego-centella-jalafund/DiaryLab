@@ -52,12 +52,6 @@
         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >Upload File </button>
     </form>
-    <a
-      href="/template_raw_milk.csv"
-      download
-      class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 mt-4 inline-block" >
-      Download CSV Template
-    </a>
     {#if message}
       <p class="mt-4 text-green-600">{message}</p>
     {/if}
