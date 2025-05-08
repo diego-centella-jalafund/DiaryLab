@@ -7,7 +7,8 @@ const pool = new Pool({
     host: 'localhost',
     database: 'midb',
     password: 'password',
-    port: 5439
+    port: 5439,
+    options: '-c search_path=diarylab,public'
 });
 
 export async function GET() {
