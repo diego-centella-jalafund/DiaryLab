@@ -51,6 +51,7 @@
                     </ul>
                 {/if}
             </div>
+            <li><a href="/export-file" class="hover:underline">Export File</a></li>
             <a href="/evaluation" class="nav-link">Evaluation</a>
             <a href="/reports-samples" class="nav-link">Samples report</a>
             <a href="/reports-prediction" class="nav-link">Prediction Report</a>
