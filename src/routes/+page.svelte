@@ -26,9 +26,9 @@
                 <h2 class="section-title">DairyLab System</h2>
                 <h1 class="main-title">How DiaryLab Can Improve Your Lab Workflow</h1>
                 <p class="description">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
-                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                    How DiaryLab offers to you the way of manage a register system of Laboratories
+                    having a easy way for add, edit and delete data and also see the data of a visible way
+                    as a prediction visualization of a certain parameter of milk
                 </p>
                 <p class="description">
                     
@@ -62,9 +62,7 @@
         <section class="additional-section">
             <h2>More About DiaryLab</h2>
             <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
-                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                This is a free trial demo for DiaryLab that helps you with automate and manage your laboratory without impediments
             </p>
         </section>
     </div>

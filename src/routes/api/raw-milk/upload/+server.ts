@@ -1,24 +1,54 @@
-import { json } from '@sveltejs/kit';
-import type { RequestHandler } from '@sveltejs/kit';
+import { json, type RequestHandler } from '@sveltejs/kit';
 import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
+import { exec } from 'child_process';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import Papa from 'papaparse';
 
 const prisma = new PrismaClient();
 
-export const POST: RequestHandler = async ({request}) => {
-  try {
+const tempDir = path.join(process.cwd(), 'temp');
+const cleanedFileName = 'fileTest_cleaned.csv';
 
-    const data = await request.formData();
-    const csvFile = data.get('csvFile');
+export const POST: RequestHandler = async ({ request }) => {
+  try {
+    await fs.mkdir(tempDir, { recursive: true });
+    const formData = await request.formData();
+    const csvFile = formData.get('csvFile');
 
     if (!csvFile || !(csvFile instanceof File) || !csvFile.name.endsWith('.csv')) {
       return json({ error: 'Only CSV files are allowed.' }, { status: 400 });
     }
 
-    const csvData = await csvFile.text();
+    const tempFilePath = path.join(tempDir, csvFile.name);
+    const arrayBuffer = await csvFile.arrayBuffer();
+    await fs.writeFile(tempFilePath, Buffer.from(arrayBuffer));
 
-    const parsed = Papa.parse(csvData, {
+    const pythonScriptPath = path.join(process.cwd(), 'src/clean_automate_csv.py');
+    const cleanedFilePath = path.join(tempDir, cleanedFileName);
+
+    const pythonCommand = `python3 ${pythonScriptPath} ${tempFilePath}`;
+    await new Promise((resolve, reject) => {
+      exec(pythonCommand, { cwd: tempDir }, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing Python script: ${error.message}`);
+          reject(error);
+          return;
+        }
+        if (stderr) {
+          console.error(`Python script stderr: ${stderr}`);
+          reject(new Error(stderr));
+          return;
+        }
+        console.log(`Python script stdout: ${stdout}`);
+        resolve(stdout);
+      });
+    });
+
+    await fs.access(cleanedFilePath);
+    const cleanedCsvData = await fs.readFile(cleanedFilePath, 'utf-8');
+
+    const parsed = Papa.parse(cleanedCsvData, {
       header: true,
       skipEmptyLines: true,
       transformHeader: (header: string) => header.trim(),
@@ -27,7 +57,7 @@ export const POST: RequestHandler = async ({request}) => {
     });
 
     if (!parsed.data || parsed.data.length === 0) {
-      return json({ error: 'No data found in the CSV file.' }, { status: 400 });
+      return json({ error: 'No data found in the cleaned CSV file.' }, { status: 400 });
     }
 
     const expectedColumns: string[] = [
@@ -71,7 +101,7 @@ export const POST: RequestHandler = async ({request}) => {
     const dataToInsert = parsed.data.map((row: { [key: string]: string }) => {
       const record: { [key: string]: string | number | Date | null } = {};
       for (const column of expectedColumns) {
-        const value = row[column]; 
+        const value = row[column];
         if (value === '' || value === undefined || value === null) {
           record[column] = null;
         } else if (column === 'date' || column === 'analysis_date') {
@@ -90,11 +120,19 @@ export const POST: RequestHandler = async ({request}) => {
     });
 
     await prisma.raw_milk.createMany({ data: dataToInsert });
+    await fs.unlink(tempFilePath);
+    await fs.unlink(cleanedFilePath);
 
-    return json({ message: 'Data uploaded correctly' }, { status: 200 });
+    return json({ message: 'File uploaded' });
   } catch (error: unknown) {
     console.error('Error processing CSV:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    try {
+      await fs.unlink(path.join(tempDir, csvFile.name));
+      await fs.unlink(path.join(tempDir, cleanedFileName));
+    } catch (cleanupError) {
+      console.error('Error cleaning up temp files:', cleanupError);
+    }
     return json({ error: `Error processing file: ${errorMessage}` }, { status: 500 });
   } finally {
     await prisma.$disconnect();
