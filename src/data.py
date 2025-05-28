@@ -43,6 +43,7 @@ try:
     cursor = conn.cursor()
 
     for i in range(200):
+        user_id = f"70f628d4-1a6f-450c-9c63-ccaed43e3507"
 
         date = random_date().date()
         analysis_date = date + timedelta(days=random.randint(0, 3))
@@ -92,7 +93,7 @@ try:
         tram_gmp2 = round(random.uniform(1.0, 6), 2)
 
         insert_query = """
-            INSERT INTO raw_milk (
+            INSERT INTO diarylab.raw_milk (
                 date, analysis_date,
                 evening_sample_number, early_morning_sample_number, gmp2_sample_number,
                 evening_sampling_time, early_morning_sampling_time, gmp2_sampling_time,
@@ -104,10 +105,10 @@ try:
                 fat_content_evening, fat_content_early_morning, fat_content_gmp2,
                 non_fat_solids_evening, non_fat_solids_early_morning, non_fat_solids_gmp2,
                 alcohol_test_evening, alcohol_test_early_morning, alcohol_test_gmp2,
-                tram_evening, tram_early_morning, tram_gmp2
+                tram_evening, tram_early_morning, tram_gmp2, user_id
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(insert_query, (
             date, analysis_date,
@@ -121,7 +122,7 @@ try:
             fat_content_evening, fat_content_early_morning, fat_content_gmp2,
             non_fat_solids_evening, non_fat_solids_early_morning, non_fat_solids_gmp2,
             alcohol_test_evening, alcohol_test_early_morning, alcohol_test_gmp2,
-            tram_evening, tram_early_morning, tram_gmp2
+            tram_evening, tram_early_morning, tram_gmp2, user_id
         ))
 
     conn.commit()

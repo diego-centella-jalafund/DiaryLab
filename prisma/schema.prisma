@@ -45,4 +45,5 @@ model raw_milk {
   tram_early_morning          String?
   tram_gmp2                   String?
   created_at                  DateTime? @default(now())
+  user_id                     String   @db.Text
 }
