@@ -9,6 +9,7 @@ export class Auth {
   #initInProgress = false;
   #options: KeycloakConfig;
   #isInitialized = false;
+  #initPromise: Promise<void> | null = null;
 
   public constructor(options: KeycloakConfig) {
     this.#observable = new Observable<User>();
@@ -25,52 +26,69 @@ export class Auth {
     this.#user = null;
     const storedToken = localStorage.getItem('access_token');
     const storedRefreshToken = localStorage.getItem('refresh_token');
-    if (storedToken) {
+    console.log('Stored tokens on init:', { storedToken, storedRefreshToken });
+    if (storedToken && storedRefreshToken) {
       await this.init({
         token: storedToken,
-        refreshToken: storedRefreshToken || undefined,
+        refreshToken: storedRefreshToken,
       });
     } else {
       this.#observable.next(null);
+      await this.login({ redirectUri: window.location.href });
     }
   }
 
   private async init(params?: any): Promise<void> {
-    if (typeof window === 'undefined' || this.#isInitialized) return;
+    if (typeof window === 'undefined') return;
+
+    if (this.#initInProgress) {
+      console.log('Initialization already in progress, waiting...');
+      if (this.#initPromise) {
+        await this.#initPromise;
+      }
+      return;
+    }
+
+    if (this.#isInitialized) {
+      console.log('Keycloak already initialized, skipping init');
+      return;
+    }
 
     this.#initInProgress = true;
-    try {
-      const authenticated = await this.#keycloak.init(params);
-      this.#isInitialized = true;
-      if (authenticated && this.#keycloak.tokenParsed) {
-        localStorage.setItem('access_token', this.#keycloak.token || '');
-        localStorage.setItem('refresh_token', this.#keycloak.refreshToken || '');
-        this.buildUser();
-        this.#observable.next(this.#user!);
-        this.#keycloak.onTokenExpired = () => {
-          this.#keycloak
-            .updateToken(5)
-            .then((refreshed) => {
-              if (refreshed) {
-                localStorage.setItem('access_token', this.#keycloak.token || '');
-                localStorage.setItem('refresh_token', this.#keycloak.refreshToken || '');
-                this.buildUser();
-                this.#observable.next(this.#user!);
-              }
-            })
-            .catch((error) => console.error('Token refresh failed:', error));
-        };
-      } else {
+    this.#initPromise = (async () => {
+      try {
+        const authenticated = await this.#keycloak.init(params);
+        this.#isInitialized = true;
+        if (authenticated && this.#keycloak.tokenParsed) {
+          localStorage.setItem('access_token', this.#keycloak.token || '');
+          localStorage.setItem('refresh_token', this.#keycloak.refreshToken || '');
+          this.buildUser();
+          this.#observable.next(this.#user!);
+          console.log('Initialized with token:', this.#keycloak.tokenParsed);
+          console.log('Refresh token after init:', this.#keycloak.refreshToken);
+          this.#keycloak.onTokenExpired = () => {
+            this.refreshToken().catch((error) => {
+              console.error('Token refresh failed in onTokenExpired:', error);
+              this.logout();
+            });
+          };
+        } else {
+          this.#user = null;
+          this.#observable.next(null);
+          await this.login({ redirectUri: window.location.href });
+        }
+      } catch (error) {
         this.#user = null;
         this.#observable.next(null);
+        console.error('Keycloak init failed:', error.message || error);
+        await this.login({ redirectUri: window.location.href });
+      } finally {
+        this.#initInProgress = false;
+        this.#initPromise = null;
       }
-    } catch (error) {
-      this.#user = null;
-      this.#observable.next(null);
-      console.error('Keycloak init failed:', error);
-    } finally {
-      this.#initInProgress = false;
-    }
+    })();
+
+    await this.#initPromise;
   }
 
   private buildUser(): void {
@@ -99,14 +117,65 @@ export class Auth {
     return this.#observable;
   }
 
+  async refreshToken(): Promise<boolean> {
+    if (!this.#keycloak) throw new Error('Keycloak not initialized');
+    if (!this.#isInitialized) {
+      console.error('Keycloak not initialized, cannot refresh token');
+      return false;
+    }
+    const storedRefreshToken = localStorage.getItem('refresh_token');
+    if (!storedRefreshToken) {
+      console.error('No refresh token available in localStorage');
+      return false;
+    }
+    if (!this.#keycloak.refreshToken) {
+      console.error('Keycloak refresh token not set, using stored refresh token');
+      this.#keycloak.refreshToken = storedRefreshToken;
+    }
+    console.log('Attempting to refresh token, current refresh token:', storedRefreshToken);
+    console.log('Access token expiration:', this.#keycloak.tokenParsed?.exp);
+    console.log('Current time:', Math.floor(Date.now() / 1000));
+    try {
+      const refreshed = await this.#keycloak.updateToken(60);
+      if (refreshed) {
+        localStorage.setItem('access_token', this.#keycloak.token || '');
+        localStorage.setItem('refresh_token', this.#keycloak.refreshToken || '');
+        this.buildUser();
+        this.#observable.next(this.#user!);
+        console.log('Token refreshed successfully');
+        console.log('New access token:', this.#keycloak.token);
+        console.log('New refresh token:', this.#keycloak.refreshToken);
+        console.log('New token expiration:', this.#keycloak.tokenParsed?.exp);
+      } else {
+        console.warn('Token refresh did not update the token');
+        console.log('Current token expiration:', this.#keycloak.tokenParsed?.exp);
+        console.log('Current time:', Math.floor(Date.now() / 1000));
+        console.log('Keycloak token state:', {
+          token: this.#keycloak.token,
+          refreshToken: this.#keycloak.refreshToken,
+        });
+      }
+      return refreshed;
+    } catch (error) {
+      console.error('Failed to refresh token:', error.message || error);
+      console.log('Keycloak refresh token state:', this.#keycloak.refreshToken);
+      return false;
+    }
+  }
+
   public async login(options: { redirectUri: string }): Promise<void> {
-    if (typeof window === 'undefined' || this.#initInProgress || this.#isInitialized) return;
+    if (typeof window === 'undefined' || this.#initInProgress) return;
 
     try {
-      await this.#keycloak.init({ onLoad: 'login-required' });
-      this.#keycloak.login(options);
+      if (!this.#isInitialized) {
+        console.log('Initializing Keycloak for login');
+        await this.init({ onLoad: 'login-required', redirectUri: options.redirectUri });
+      }
+      console.log('Redirecting to Keycloak login with redirectUri:', options.redirectUri);
+      await this.#keycloak.login(options);
     } catch (error) {
       console.error('Login failed:', error);
+      throw error;
     }
   }
 
@@ -114,7 +183,7 @@ export class Auth {
     if (typeof window === 'undefined') return;
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    localStorage.removeItem('exp'); 
+    localStorage.removeItem('exp');
     this.#keycloak.logout({ redirectUri: 'http://localhost:5173' });
     this.#user = null;
     this.#observable.next(null);
@@ -126,25 +195,18 @@ export class Auth {
     const params = new URL(window.location.href.replace('#', '?')).searchParams;
     if (params.get('state') && params.get('session_state') && params.get('code')) {
       try {
-        const authenticated = await this.#keycloak.init({
-          onLoad: 'check-sso',
-          redirectUri: window.location.href.split('#')[0],
-        });
-        if (authenticated && this.#keycloak.tokenParsed) {
-          localStorage.setItem('access_token', this.#keycloak.token || '');
-          localStorage.setItem('refresh_token', this.#keycloak.refreshToken || '');
-          this.buildUser();
-          this.#observable.next(this.#user!);
-        } else {
-          this.#user = null;
-          this.#observable.next(null);
-          this.login({ redirectUri: window.location.href });
+        if (!this.#isInitialized) {
+          await this.init({
+            onLoad: 'check-sso',
+            redirectUri: window.location.href.split('#')[0],
+          });
         }
       } catch (error) {
-        this.login({ redirectUri: window.location.href });
+        console.error('Check params failed:', error);
+        await this.login({ redirectUri: window.location.href });
       }
     } else if (!this.#user) {
-      this.login({ redirectUri: window.location.href });
+      await this.login({ redirectUri: window.location.href });
     }
   }
 

@@ -12,32 +12,41 @@ const pool = new Pool({
     port: 5439,
     options: '-c search_path=diarylab,public'
 });
-const jwk = {
-    kty: 'RSA',
-    n: 'q37khDwHgN98uMsZSBTbEHKD6zB-0EyL5cKcm9Q18SYpd24Q5Xobf5kEbSY45x-Uw9dJz54Qq35oseRs15anMLwdmcgInU4Sou7XTGkkjqwN9YIn7aB2CQjaiHygbO20vBQPeRILF5D7YC414twxHHIFJYgfRE8WJ2VmKIcXP-4AhfuAPFS8Yn3-2RNomHcIYucl1N80xVV8wlA2aSHdFs-gSCrU9TH0cVs3DCaeleZJsJtQ3F00Rdw7WplmEjCXftPosHsGtcYkurJTx_1IS97rZrVVaJhvk2dMtTTzuaH-CmVOVotiynXw4LLDAQwrwt5HAwSFcWxWWxxrqkECPQ',
-    e: 'AQAB',
-};
-const KEYCLOAK_PUBLIC_KEY = jwkToPem(jwk);
+(async () => {
+    try {
+        const client = await pool.connect();
+        console.log('Database connected successfully');
+        client.release();
+    } catch (error) {
+        console.error('Database connection failed:', error);
+    }
+})();
+async function getPublicKey() {
+    const response = await fetch('http://localhost:8080/realms/diarylab/protocol/openid-connect/certs');
+    const jwks = await response.json();
+    const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
+    return jwkToPem(jwk);
+}
+
+let KEYCLOAK_PUBLIC_KEY: string;
+(async () => {
+    KEYCLOAK_PUBLIC_KEY = await getPublicKey();
+})();
+
 export async function POST({ request }) {
     try {
-        
-        const authHeader = request.headers.get('authorization');
+        const authHeader = request.headers.get('Authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return json({ error: 'No token provided' }, { status: 401 });
+            return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
         }
 
-        const token = authHeader.split(' ')[1];
-
-        let userId;
+        const token = authHeader.replace('Bearer ', '');
+        let decodedToken;
         try {
-            const decoded = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as { sub: string };
-            userId = decoded.sub;
+            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as { sub: string };
         } catch (error) {
-            return json({ error: 'Invalid token: ' + error.message }, { status: 401 });
-        }
-
-        if (!userId) {
-            return json({ error: 'User not identified' }, { status: 401 });
+            console.error('Token verification failed:', error);
+            return json({ error: 'Invalid token', reason: 'token_invalid' }, { status: 401 });
         }
         const formData = await request.json();
         const query = `
@@ -66,47 +75,46 @@ export async function POST({ request }) {
                 $24, $25, $26,
                 $27, $28, $29,
                 $30, $31, $32,
-                $33, $34, $35,
-                $36
+                $33, $34, $35, $36
             )
         `;
         const values = [
             formData.date || null,
             formData.analysisDate || null,
-            formData.sampleNumber.evening || null,
-            formData.sampleNumber.earlyMorning || null,
-            formData.sampleNumber.gmp2 || null,
-            formData.samplingTime.evening || null,
-            formData.samplingTime.earlyMorning || null,
-            formData.samplingTime.gmp2 || null,
-            formData.samplingTemperature.evening || null,
-            formData.samplingTemperature.earlyMorning || null,
-            formData.samplingTemperature.gmp2 || null,
-            formData.ph20C.evening || null,
-            formData.ph20C.earlyMorning || null,
-            formData.ph20C.gmp2 || null,
-            formData.temperature.evening || null,
-            formData.temperature.earlyMorning || null,
-            formData.temperature.gmp2 || null,
-            formData.titratableAcidity.evening || null,
-            formData.titratableAcidity.earlyMorning || null,
-            formData.titratableAcidity.gmp2 || null,
-            formData.density20C.evening || null,
-            formData.density20C.earlyMorning || null,
-            formData.density20C.gmp2 || null,
-            formData.fatContent.evening || null,
-            formData.fatContent.earlyMorning || null,
-            formData.fatContent.gmp2 || null,
-            formData.nonFatSolids.evening || null,
-            formData.nonFatSolids.earlyMorning || null,
-            formData.nonFatSolids.gmp2 || null,
-            formData.alcoholTest.evening || null,
-            formData.alcoholTest.earlyMorning || null,
-            formData.alcoholTest.gmp2 || null,
-            formData.tram.evening || null,
-            formData.tram.earlyMorning || null,
-            formData.tram.gmp2 || null,
-            userId
+            formData.sampleNumber?.evening || null,
+            formData.sampleNumber?.earlyMorning || null,
+            formData.sampleNumber?.gmp2 || null,
+            formData.samplingTime?.evening || null,
+            formData.samplingTime?.earlyMorning || null,
+            formData.samplingTime?.gmp2 || null,
+            formData.samplingTemperature?.evening ? parseFloat(formData.samplingTemperature.evening) : null,
+            formData.samplingTemperature?.earlyMorning ? parseFloat(formData.samplingTemperature.earlyMorning) : null,
+            formData.samplingTemperature?.gmp2 ? parseFloat(formData.samplingTemperature.gmp2) : null,
+            formData.ph20C?.evening ? parseFloat(formData.ph20C.evening) : null,
+            formData.ph20C?.earlyMorning ? parseFloat(formData.ph20C.earlyMorning) : null,
+            formData.ph20C?.gmp2 ? parseFloat(formData.ph20C.gmp2) : null,
+            formData.temperature?.evening ? parseFloat(formData.temperature.evening) : null,
+            formData.temperature?.earlyMorning ? parseFloat(formData.temperature.earlyMorning) : null,
+            formData.temperature?.gmp2 ? parseFloat(formData.temperature.gmp2) : null,
+            formData.titratableAcidity?.evening ? parseFloat(formData.titratableAcidity.evening) : null,
+            formData.titratableAcidity?.earlyMorning ? parseFloat(formData.titratableAcidity.earlyMorning) : null,
+            formData.titratableAcidity?.gmp2 ? parseFloat(formData.titratableAcidity.gmp2) : null,
+            formData.density20C?.evening ? parseFloat(formData.density20C.evening) : null,
+            formData.density20C?.earlyMorning ? parseFloat(formData.density20C.earlyMorning) : null,
+            formData.density20C?.gmp2 ? parseFloat(formData.density20C.gmp2) : null,
+            formData.fatContent?.evening ? parseFloat(formData.fatContent.evening) : null,
+            formData.fatContent?.earlyMorning ? parseFloat(formData.fatContent.earlyMorning) : null,
+            formData.fatContent?.gmp2 ? parseFloat(formData.fatContent.gmp2) : null,
+            formData.nonFatSolids?.evening ? parseFloat(formData.nonFatSolids.evening) : null,
+            formData.nonFatSolids?.earlyMorning ? parseFloat(formData.nonFatSolids.earlyMorning) : null,
+            formData.nonFatSolids?.gmp2 ? parseFloat(formData.nonFatSolids.gmp2) : null,
+            formData.alcoholTest?.evening || null,
+            formData.alcoholTest?.earlyMorning || null,
+            formData.alcoholTest?.gmp2 || null,
+            formData.tram?.evening || null,
+            formData.tram?.earlyMorning || null,
+            formData.tram?.gmp2 || null,
+            decodedToken.sub
         ];
 
         await pool.query(query, values);

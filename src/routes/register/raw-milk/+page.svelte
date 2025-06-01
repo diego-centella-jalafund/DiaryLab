@@ -42,14 +42,22 @@
     let tramEarlyMorning = '';
     let tramGmp2 = '';
 
-    onMount(() => {
+    onMount(async () => {
         Registry.auth.checkParams();
         Registry.auth.getUser().subscribe((data: User) => {
             user = data;
+            if (user) {
+                console.log('Authenticated user:', user.userId);
+            } else {
+                console.log('No user authenticated, initiating login...');
+                Registry.auth.login({ redirectUri: window.location.href }).catch((error) => {
+                    console.error('Login initiation failed:', error);
+                });
+            }
         });
-    });
+    })
 
-    async function saveForm() {
+    async function saveForm(retryCount = 0) {
         const formData = {
             date,
             analysisDate,
@@ -109,23 +117,73 @@
                 gmp2: tramGmp2
             }
         };
+        let token = Registry.auth.getToken();
+        if (!token) {
+            console.warn('No token found in localStorage, redirecting to login...');
+            alert('No authentication token available. Redirecting to login...');
+            await Registry.auth.login({ redirectUri: window.location.href });
+            return;
+        }
+
+        console.log('Token before refresh:', token);
+
+        try {
+            const refreshed = await Registry.auth.refreshToken();
+            if (!refreshed) {
+                console.warn('Token refresh failed, possibly due to expired refresh token');
+                if (retryCount < 1) {
+                    const refreshedAgain = await Registry.auth.refreshToken();
+                    if (refreshedAgain) {
+                        token = Registry.auth.getToken();
+                        console.log('Token after second refresh:', token);
+                    } 
+                } 
+            }
+            token = Registry.auth.getToken();
+            if (!token) {
+                console.error('No token available after refresh attempt');
+                throw new Error('Failed to obtain token after refresh');
+            }
+            console.log('Token after refresh:', token);
+        } catch (error) {
+            console.error('Error during token refresh:', error.message || error);
+            alert('Authentication error: Redirecting to login...');
+            await Registry.auth.login({ redirectUri: window.location.href });
+            return;
+        }
 
         try {
             const response = await fetch('/api/raw-milk', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(formData)
             });
 
             if (response.ok) {
-                alert('upload data sucess');
+                const result = await response.json();
+                alert('Data uploaded successfully: ' + (result.id ? `ID ${result.id}` : ''));
             } else {
-                alert('error to upload data');
+                const result = await response.json();
+                console.error('API response:', result);
+                if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
+                    const refreshed = await Registry.auth.refreshToken();
+                    if (refreshed) {
+                        return saveForm(retryCount + 1);
+                    } else {
+                        console.warn('Token refresh failed on retry');
+                        alert('Session expired. Redirecting to login...');
+                        await Registry.auth.login({ redirectUri: window.location.href });
+                        return;
+                    }
+                }
+                throw new Error(`Failed to upload data: ${response.status} - ${result.message || result.error || response.statusText}`);
             }
         } catch (error) {
-            alert('error to save data');
+            console.error('Error uploading data:', error.message || error);
+            alert('Error saving data: ' + (error instanceof Error ? error.message : 'Unknown error'));
         }
     }
 </script>
@@ -134,7 +192,7 @@
     <div slot="authed" let:user>
         <section class="form-section">
             <h1>Raw milk analisis inform</h1>
-            <form on:submit|preventDefault={saveForm}>
+            <form on:submit|preventDefault={() => saveForm()}>
                 <div class="date-section">
                     <div class="form-row">
                         <label>Date:</label>
