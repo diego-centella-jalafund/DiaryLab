@@ -1,6 +1,12 @@
 import psycopg2
 import pandas as pd
 from datetime import datetime
+import sys
+
+if len(sys.argv) != 2:
+    sys.exit(1)
+
+user_id = sys.argv[1]
 
 DB_HOST = "localhost"
 DB_PORT = "5439"
@@ -24,12 +30,12 @@ query = """
         ph_20c_evening, ph_20c_early_morning, ph_20c_gmp2,
         density_20c_evening, density_20c_early_morning, density_20c_gmp2,
         titratable_acidity_evening, titratable_acidity_early_morning, titratable_acidity_gmp2
-    FROM raw_milk
-    WHERE date IS NOT NULL
+    FROM diarylab.raw_milk
+    WHERE date IS NOT NULL AND user_id = %s
     ORDER BY date;
 """
 
-cursor.execute(query)
+cursor.execute(query, (user_id,))
 rows = cursor.fetchall()
 
 cursor.close()

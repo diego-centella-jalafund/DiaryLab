@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db:
     image: postgres:15
@@ -24,14 +23,10 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://db:5432/midb
+      KC_DB_URL: jdbc:postgresql://db:5432/midb?schema=public
+      KC_DB_URL_PORT: 5432
       KC_DB_USERNAME: user
       KC_DB_PASSWORD: password
-      QUARKUS_DATASOURCE_JDBC_ACQUISITION_TIMEOUT: 60s
-      QUARKUS_DATASOURCE_JDBC_MAX_SIZE: 20
-      QUARKUS_DATASOURCE_JDBC_MIN_SIZE: 2
-      QUARKUS_DATASOURCE_JDBC_INITIAL_SIZE: 2
-      QUARKUS_TRANSACTION_MANAGER_ENABLE_RECOVERY: "true"
       KC_HOSTNAME: localhost
       KC_HOSTNAME_PORT: 8080
       KC_HOSTNAME_STRICT: false

@@ -9,40 +9,41 @@ generator client {
 
 model raw_milk {
   id                          Int      @id @default(autoincrement())
-  date                        DateTime
-  analysis_date               DateTime
-  evening_sample_number       String?
-  early_morning_sample_number String?
-  gmp2_sample_number          String?
-  evening_sampling_time       String?
-  early_morning_sampling_time String?
-  gmp2_sampling_time          String?
-  evening_sampling_temperature  Decimal? @db.Decimal
-  early_morning_sampling_temperature Decimal? @db.Decimal
-  gmp2_sampling_temperature    Decimal? @db.Decimal
-  ph_20c_evening              Decimal? @db.Decimal
-  ph_20c_early_morning        Decimal? @db.Decimal
-  ph_20c_gmp2                 Decimal? @db.Decimal
-  evening_temperature         Decimal? @db.Decimal
-  early_morning_temperature   Decimal? @db.Decimal
-  gmp2_temperature            Decimal? @db.Decimal
-  titratable_acidity_evening  Decimal? @db.Decimal
-  titratable_acidity_early_morning Decimal? @db.Decimal
-  titratable_acidity_gmp2     Decimal? @db.Decimal
-  density_20c_evening         Decimal? @db.Decimal
-  density_20c_early_morning   Decimal? @db.Decimal
-  density_20c_gmp2            Decimal? @db.Decimal
-  fat_content_evening         Decimal? @db.Decimal
-  fat_content_early_morning   Decimal? @db.Decimal
-  fat_content_gmp2            Decimal? @db.Decimal
-  non_fat_solids_evening      Decimal? @db.Decimal
-  non_fat_solids_early_morning Decimal? @db.Decimal
-  non_fat_solids_gmp2         Decimal? @db.Decimal
-  alcohol_test_evening        String?
-  alcohol_test_early_morning  String?
-  alcohol_test_gmp2           String?
-  tram_evening                String?
-  tram_early_morning          String?
-  tram_gmp2                   String?
-  created_at                  DateTime? @default(now())
+  date                        DateTime @db.Date 
+  analysis_date               DateTime @db.Date
+  evening_sample_number       String?  @db.VarChar(50)
+  early_morning_sample_number String?  @db.VarChar(50)
+  gmp2_sample_number          String?  @db.VarChar(50)
+  evening_sampling_time       DateTime? @db.Time
+  early_morning_sampling_time DateTime? @db.Time
+  gmp2_sampling_time          DateTime? @db.Time
+  evening_sampling_temperature  Decimal @db.Decimal 
+  early_morning_sampling_temperature Decimal @db.Decimal 
+  gmp2_sampling_temperature    Decimal @db.Decimal 
+  ph_20c_evening              Decimal @db.Decimal 
+  ph_20c_early_morning        Decimal @db.Decimal 
+  ph_20c_gmp2                 Decimal @db.Decimal 
+  evening_temperature         Decimal @db.Decimal 
+  early_morning_temperature   Decimal @db.Decimal 
+  gmp2_temperature            Decimal @db.Decimal 
+  titratable_acidity_evening  Decimal @db.Decimal 
+  titratable_acidity_early_morning Decimal @db.Decimal 
+  titratable_acidity_gmp2     Decimal @db.Decimal 
+  density_20c_evening         Decimal @db.Decimal 
+  density_20c_early_morning   Decimal @db.Decimal 
+  density_20c_gmp2            Decimal @db.Decimal 
+  fat_content_evening         Decimal @db.Decimal 
+  fat_content_early_morning   Decimal @db.Decimal 
+  fat_content_gmp2            Decimal @db.Decimal 
+  non_fat_solids_evening      Decimal @db.Decimal 
+  non_fat_solids_early_morning Decimal @db.Decimal 
+  non_fat_solids_gmp2         Decimal @db.Decimal 
+  alcohol_test_evening        String? @db.VarChar(50)
+  alcohol_test_early_morning  String? @db.VarChar(50)
+  alcohol_test_gmp2           String? @db.VarChar(50)
+  tram_evening                String? @db.VarChar(50)
+  tram_early_morning          String? @db.VarChar(50)
+  tram_gmp2                   String? @db.VarChar(50)
+  created_at                  DateTime? @default(now()) @db.Timestamp
+  user_id                     String   @db.Text
 }

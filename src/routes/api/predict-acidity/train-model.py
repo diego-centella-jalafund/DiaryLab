@@ -13,7 +13,6 @@ plt.style.use('seaborn')
 sns.set_palette("husl")
 
 df = pd.read_csv('raw_milk_data.csv')
-print(f"Total rows in raw_milk_data.csv: {len(df)}")
 
 features = ['days_since_start', 'temperature', 'ph_20c', 'density_20c']
 target = 'titratable_acidity'

@@ -2,12 +2,12 @@
     import { onMount } from 'svelte';
     import { Registry } from '$lib/auth/Registry';
     import type { User } from '$lib/auth/User';
+    import { Auth } from '$lib/auth/Auth';
 
     let user: User | null = null;
-    let isRegisterMenuOpenn = false;
-
-    onMount(() => {
-        Registry.auth.inBrowserInit();
+    let isRegisterMenuOpen = false;
+    onMount(async () => {
+    Registry.auth.inBrowserInit();
         Registry.auth.checkParams();
         Registry.auth.getUser().subscribe((data: User) => {
             user = data;
@@ -15,7 +15,7 @@
                 Registry.auth.login({ redirectUri: location.href });
             }
         });
-    });
+  });
 
     function logout() {
         Registry.auth.logout();
@@ -23,7 +23,7 @@
     }
 
     function menuRegisterOption() {
-        isRegisterMenuOpenn = !isRegisterMenuOpenn;
+        isRegisterMenuOpen = !isRegisterMenuOpen;
     }
 </script>
 
@@ -39,7 +39,7 @@
                 <button class="menu-btn" on:click={menuRegisterOption}>
                     Register <span class="arrow">▼</span>
                 </button>
-                {#if isRegisterMenuOpenn}
+                {#if isRegisterMenuOpen}
                     <ul class="dropdown-menu">
                         <li><a href="/register/raw-milk" on:click={menuRegisterOption}>Raw Milk</a></li>
                         <li><a href="/register/yogurt-probiotic" on:click={menuRegisterOption}>Yogurt Probiotic</a></li>
@@ -51,7 +51,7 @@
                     </ul>
                 {/if}
             </div>
-            <a href="/export-file" class="nav-link">Export File</a>
+            <a href="/import-file" class="nav-link">import File</a>
             <a href="/evaluation" class="nav-link">Evaluation</a>
             <a href="/reports-samples" class="nav-link">Samples report</a>
             <a href="/reports-prediction" class="nav-link">Prediction Report</a>

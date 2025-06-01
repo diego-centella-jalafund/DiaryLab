@@ -77,7 +77,7 @@ else:
 time_row = general_info[general_info.apply(lambda row: row.str.contains('hora de muestreo', case=False, na=False).any(), axis=1)]
 if not time_row.empty:
     time_col = time_row.columns[time_row.iloc[0].str.contains('hora de muestreo', case=False, na=False)][0]
-    sampling_times = [time_row.iloc[0][col].replace('AM', '').replace('PM', '').strip() for col in [3, 4, 5] if pd.notna(time_row.iloc[0][col]) and time_row.iloc[0][col] != 'nan']
+    sampling_times = [time_row.iloc[0][col].strip() for col in [3, 4, 5] if pd.notna(time_row.iloc[0][col]) and time_row.iloc[0][col] != 'nan']
     if len(sampling_times) != 3:
         sampling_times = ['', '', '']  
 else:
@@ -101,9 +101,9 @@ result = pd.DataFrame({
     'evening_sampling_time': [sampling_times[0]],
     'early_morning_sampling_time': [sampling_times[1]],
     'gmp2_sampling_time': [sampling_times[2]],
-    'evening_sampling_temperature': [float(sampling_temps[0])],
-    'early_morning_sampling_temperature': [float(sampling_temps[1])],
-    'gmp2_sampling_temperature': [float(sampling_temps[2])]
+    'evening_sampling_temperature': [float(sampling_temps[0]) if sampling_temps[0] else ''],
+    'early_morning_sampling_temperature': [float(sampling_temps[1]) if sampling_temps[1] else ''],
+    'gmp2_sampling_temperature': [float(sampling_temps[2]) if sampling_temps[2] else '']
 })
 
 for index, row in df_data.iterrows():

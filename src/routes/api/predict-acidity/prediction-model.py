@@ -14,7 +14,7 @@ avg_ph_20c = 6.7
 avg_density_20c = 1.030  
 
 predictions = []
-for i in range(1, 8):
+for i in range(1, 21):
     future_day = days_since_start + i
     future_date = last_date + timedelta(days=i)
     temperature = np.clip(avg_temperature + np.random.uniform(-0.5, 0.5), 15, 25)
