@@ -96,7 +96,7 @@
           } else {
               console.error('API response:', result);
               if (response.status === 401 && (result.reason === 'jwt expired' || result.reason === 'token_invalid') && retryCount < 1) {
-                  console.warn('Token invalid or expired, retrying...');
+                  console.warn('Token invalid or expired');
                   return handleSubmit(retryCount + 1);
               }
               throw new Error(result.error || result.message || `Failed to upload file: ${response.status}`);
@@ -106,7 +106,7 @@
           error = err instanceof Error ? err.message : 'An unknown error occurred while uploading the file.';
           message = '';
           if (error.includes('Session expired') || error.includes('Invalid token')) {
-              console.warn('Authentication error detected, redirecting to login...');
+              console.warn('Authentication error detected, redirecting to login');
               await Registry.auth.login({ redirectUri: window.location.href });
           }
       } finally {
@@ -115,29 +115,78 @@
   }
 </script>
   
-  <div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-4">Upload Raw Milk Data</h1>
-    <p class="mb-4">upload a CSV from excel format</p>
-    <form on:submit|preventDefault={handleSubmit} class="space-y-4">
-      <div>
-        <label for="csvFile" class="block text-lg font-medium">Select CSV File:</label>
-        <input
-          type="file"
-          id="csvFile"
-          accept=".csv"
-          bind:this={fileInput}
-          class="mt-1 block w-full border rounded p-2"
-        />
-      </div>
-      <button
-        type="submit"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >Upload File </button>
-    </form>
-    {#if message}
-      <p class="mt-4 text-green-600">{message}</p>
-    {/if}
-    {#if error}
-      <p class="mt-4 text-red-600">{error}</p>
-    {/if}
+<div class="container mx-auto p-6">
+  <h1 class="text-3xl font-bold mb-4">Upload Raw Milk Data</h1>
+  <p class="mb-4">Upload a .CSV file from Excel format</p>
+  <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+    <div>
+      <label for="csvFile" class="block text-lg font-medium">Select .csv File:</label>
+      <input
+        type="file"
+        id="csvFile"
+        accept=".csv"
+        bind:this={fileInput}
+        class="mt-1 block w-full border rounded p-2"
+      />
+    </div>
+    <button
+      type="submit"
+      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+    >
+      Upload File
+    </button>
+  </form>
+  {#if message}
+    <p class="mt-4 text-green-600">{message}</p>
+  {/if}
+  {#if error}
+    <p class="mt-4 text-red-600">{error}</p>
+  {/if}
+
+  <div class="mt-6 flex justify-center gap-6">
+    <img
+      src="images/informelechecruda.png"
+      alt="Example CSV file format (Left)"
+      class="max-w-xs h-auto rounded shadow-md"
+    />
+    <img
+      src="images/transformedtoCSV.png"
+      alt="Example CSV file format (Right)"
+      class="max-w-xs h-auto rounded shadow-md"
+    />
   </div>
+  <div class="mt-6">
+    <h2 class="text-xl font-semibold mb-2">Steps to Upload Your CSV File</h2>
+    <ul class="list-disc list-inside space-y-2 text-gray-700">
+      <li>Prepare your Excel file with the required columns as the top left image.</li>
+      <li>Save as .csv file, have to be as the top right image</li>
+      <li>Click "Choose file" button and choose your .csv formated file from your device.</li>
+      <li>Click "Upload File" to submit the CSV for processing.</li>
+    </ul>
+  </div>
+
+  
+</div>
+<style>
+  .container {
+    max-width: 100%; 
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  img {
+    width: 40%; 
+    max-width: 45vw; 
+    height: auto;
+  }
+  ul {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+</style>

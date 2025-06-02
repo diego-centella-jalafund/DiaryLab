@@ -42,8 +42,7 @@
                 {#if isRegisterMenuOpen}
                     <ul class="dropdown-menu">
                         <li><a href="/register/raw-milk" on:click={menuRegisterOption}>Raw Milk</a></li>
-                        <li><a href="/register/yogurt-probiotic" on:click={menuRegisterOption}>Yogurt Probiotic</a></li>
-                        <li><a href="/register/yogurt-flavored" on:click={menuRegisterOption}>Yogurt Flavored</a></li>
+                        <li><a href="/register/yogurt-probiotic-flavored" on:click={menuRegisterOption}>Yogurt Probiotic</a></li>
                         <li><a href="/register/yogurt-no-sugar" on:click={menuRegisterOption}>Yogurt no Sugar</a></li>
                         <li><a href="/register/yogurt-fruity" on:click={menuRegisterOption}>Yogurt Fruity</a></li>
                         <li><a href="/register/semi-ripe-cheese" on:click={menuRegisterOption}>Semi-ripe Cheese</a></li>
