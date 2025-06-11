@@ -14,12 +14,22 @@ const pool = new Pool({
   options: '-c search_path=diarylab,public',
 });
 
-const jwk = {
-  kty: 'RSA',
-  n: 'hcL1hF1k7uEdBLBJyjAb_mNTOXo6v-6hkx09rEBGZ_xA5pe3DfArudoYcW1s_p5_RiyRTtI05WanBsDHy4A5uYYOPE84iYnj7W2f9wbEduZs8RIpvaUgF2NO4UP54zqRDOkQKHkB6KBMH-fMfA-n3aUf3fG-i0iNndUo5s1UxP8zLyrBapMVRaHOJbXknCtwr0OgN8ukZro502U_eaC57-aEwPaze358-YdBBFtZY8F346JppKirXB_zgPH7gHth4cw0UhewVN5ifK837-CsBs6tfGKpPOnEHXNdNYH0YorDZSl6tj0omaPxbt9UfKeild3e9nkCeSr1diGMqfwzjw',
-  e: 'AQAB',
-};
-const KEYCLOAK_PUBLIC_KEY = jwkToPem(jwk);
+async function getPublicKey(): Promise<string> {
+    const response = await fetch('http://localhost:8080/realms/diarylab/protocol/openid-connect/certs');
+    const jwks = await response.json();
+    const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
+    return jwkToPem(jwk);
+}
+
+let KEYCLOAK_PUBLIC_KEY: string | null = null;
+(async () => {
+    try {
+        KEYCLOAK_PUBLIC_KEY = await getPublicKey();
+        console.log('Keycloak public key fetched successfully');
+    } catch (error) {
+        console.error('Failed to initialize Keycloak public key:', error);
+    }
+})();
 
 export async function GET({ request }) {
   try {

@@ -73,6 +73,7 @@
 		"jwt-decode": "^4.0.0",
 		"keycloak-js": "^26.1.4",
 		"papaparse": "^5.5.2",
-		"pg": "^8.15.6"
+		"pg": "^8.15.6",
+		"sanitize-html": "^2.17.0"
 	}
 }

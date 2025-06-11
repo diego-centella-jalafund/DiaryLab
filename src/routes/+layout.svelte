@@ -50,10 +50,10 @@
                     </ul>
                 {/if}
             </div>
-            <a href="/import-file" class="nav-link">import File</a>
-            <a href="/evaluation" class="nav-link">Evaluation</a>
-            <a href="/reports-samples" class="nav-link">Samples report</a>
-            <a href="/reports-prediction" class="nav-link">Prediction Report</a>
+            <a href="/import-file" class="nav-link-1">import File</a>
+            <a href="/evaluation" class="nav-link-2">Evaluation</a>
+            <a href="/reports-samples" class="nav-link-3">Samples report</a>
+            <a href="/reports-prediction" class="nav-link-4">Prediction Report</a>
         </div>
         <button class="logout-btn" on:click={logout}>Log out</button>
     </div>
@@ -102,15 +102,45 @@
         gap: 2rem;
         align-items: center;
     }
-    .nav-link {
-        color: #cccccc;
+    .nav-link-1 {
+        color: #dbd6d6; 
         font-size: 1rem;
         font-weight: 500;
         text-transform: uppercase;
         text-decoration: none;
     }
-    .nav-link:hover {
-        color: #ffffff;
+    .nav-link-2 {
+        color: #dbd6d6; 
+        font-size: 1rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        text-decoration: none; 
+    }
+    .nav-link-3 {
+        font-size: 1rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        text-decoration: none;
+        pointer-events: none;
+        color: #cccccc; 
+        cursor: not-allowed;
+        opacity: 0.6; 
+    }
+    .nav-link-4 {
+        color: #dbd6d6; 
+        font-size: 1rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        text-decoration: none;
+    }
+    .nav-link-1:hover {
+        color: #463e3e;
+    }
+    .nav-link-2:hover {
+        color: #5a4e4e;
+    }
+    .nav-link-4:hover {
+        color: #5c5050;
     }
     .dropdown {
         position: relative;
@@ -128,7 +158,7 @@
         gap: 0.3rem;
     }
     .menu-btn:hover {
-        color: #ffffff;
+        color: #554646;
     }
     .arrow {
         font-size: 0.8rem;
