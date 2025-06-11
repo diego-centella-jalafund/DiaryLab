@@ -12,7 +12,6 @@
             user = data;
         });
 
-
     });
 </script>
 

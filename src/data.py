@@ -43,7 +43,7 @@ try:
     cursor = conn.cursor()
 
     for i in range(200):
-        user_id = f"8fc514b2-4179-47e7-a892-b53d96bbb7cb"
+        user_id = f"dc9790fb-d3dd-46d3-8c66-00f0b78f178e"
 
         date = random_date().date()
         analysis_date = date + timedelta(days=random.randint(0, 3))
