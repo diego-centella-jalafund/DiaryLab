@@ -149,3 +149,194 @@ export const GET: RequestHandler = async ({ request, params }) => {
 		return json({ error: 'Internal server error' }, { status: 500 });
 	}
 };
+
+export const PUT: RequestHandler = async ({ request, params }) => {
+	try {
+      const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    let decodedToken: { sub: string };
+    try {
+      decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as { sub: string };
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      return json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+		const userId = sanitizeHtml(decodedToken.sub);
+		const reportId = sanitizeHtml(params.id || '');
+
+		const parsedReportId = parseInt(reportId, 10);
+		if (isNaN(parsedReportId) || parsedReportId <= 0) {
+			return json({ error: 'Invalid report ID' }, { status: 400 });
+		}
+
+		const data = await request.json();
+		if (!data || typeof data !== 'object') {
+			return json({ error: 'Invalid request body' }, { status: 400 });
+		}
+
+		const sanitizedData = {
+			date: sanitizeHtml(data.date || ''),
+			analysisDate: sanitizeHtml(data.analysisDate || ''),
+			sampleNumber: {
+				evening: sanitizeHtml(data.sampleNumber?.evening || ''),
+				earlyMorning: sanitizeHtml(data.sampleNumber?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.sampleNumber?.gmp2 || '')
+			},
+			samplingTime: {
+				evening: sanitizeHtml(data.samplingTime?.evening || ''),
+				earlyMorning: sanitizeHtml(data.samplingTime?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.samplingTime?.gmp2 || '')
+			},
+			samplingTemperature: {
+				evening: sanitizeHtml(data.samplingTemperature?.evening || ''),
+				earlyMorning: sanitizeHtml(data.samplingTemperature?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.samplingTemperature?.gmp2 || '')
+			},
+			ph20C: {
+				evening: sanitizeHtml(data.ph20C?.evening || ''),
+				earlyMorning: sanitizeHtml(data.ph20C?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.ph20C?.gmp2 || '')
+			},
+			temperature: {
+				evening: sanitizeHtml(data.temperature?.evening || ''),
+				earlyMorning: sanitizeHtml(data.temperature?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.temperature?.gmp2 || '')
+			},
+			titratableAcidity: {
+				evening: sanitizeHtml(data.titratableAcidity?.evening || ''),
+				earlyMorning: sanitizeHtml(data.titratableAcidity?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.titratableAcidity?.gmp2 || '')
+			},
+			density20C: {
+				evening: sanitizeHtml(data.density20C?.evening || ''),
+				earlyMorning: sanitizeHtml(data.density20C?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.density20C?.gmp2 || '')
+			},
+			fatContent: {
+				evening: sanitizeHtml(data.fatContent?.evening || ''),
+				earlyMorning: sanitizeHtml(data.fatContent?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.fatContent?.gmp2 || '')
+			},
+			nonFatSolids: {
+				evening: sanitizeHtml(data.nonFatSolids?.evening || ''),
+				earlyMorning: sanitizeHtml(data.nonFatSolids?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.nonFatSolids?.gmp2 || '')
+			},
+			alcoholTest: {
+				evening: sanitizeHtml(data.alcoholTest?.evening || ''),
+				earlyMorning: sanitizeHtml(data.alcoholTest?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.alcoholTest?.gmp2 || '')
+			},
+			tram: {
+				evening: sanitizeHtml(data.tram?.evening || ''),
+				earlyMorning: sanitizeHtml(data.tram?.earlyMorning || ''),
+				gmp2: sanitizeHtml(data.tram?.gmp2 || '')
+			}
+		};
+
+		if (!sanitizedData.date || !sanitizedData.analysisDate) {
+			return json({ error: 'Date and Analysis Date are required' }, { status: 400 });
+		}
+
+		const client = await pool.connect();
+		try {
+			const query = `
+				UPDATE raw_milk
+				SET
+					date = $1,
+					analysis_date = $2,
+					evening_sample_number = $3,
+					early_morning_sample_number = $4,
+					gmp2_sample_number = $5,
+					evening_sampling_time = $6,
+					early_morning_sampling_time = $7,
+					gmp2_sampling_time = $8,
+					evening_sampling_temperature = $9,
+					early_morning_sampling_temperature = $10,
+					gmp2_sampling_temperature = $11,
+					ph_20c_evening = $12,
+					ph_20c_early_morning = $13,
+					ph_20c_gmp2 = $14,
+					evening_temperature = $15,
+					early_morning_temperature = $16,
+					gmp2_temperature = $17,
+					titratable_acidity_evening = $18,
+					titratable_acidity_early_morning = $19,
+					titratable_acidity_gmp2 = $20,
+					density_20c_evening = $21,
+					density_20c_early_morning = $22,
+					density_20c_gmp2 = $23,
+					fat_content_evening = $24,
+					fat_content_early_morning = $25,
+					fat_content_gmp2 = $26,
+					non_fat_solids_evening = $27,
+					non_fat_solids_early_morning = $28,
+					non_fat_solids_gmp2 = $29,
+					alcohol_test_evening = $30,
+					alcohol_test_early_morning = $31,
+					alcohol_test_gmp2 = $32,
+					tram_evening = $33,
+					tram_early_morning = $34,
+					tram_gmp2 = $35
+				WHERE id = $36 AND user_id = $37
+				RETURNING id
+			`;
+			const values = [
+				sanitizedData.date,
+				sanitizedData.analysisDate,
+				sanitizedData.sampleNumber.evening,
+				sanitizedData.sampleNumber.earlyMorning,
+				sanitizedData.sampleNumber.gmp2,
+				sanitizedData.samplingTime.evening,
+				sanitizedData.samplingTime.earlyMorning,
+				sanitizedData.samplingTime.gmp2,
+				sanitizedData.samplingTemperature.evening,
+				sanitizedData.samplingTemperature.earlyMorning,
+				sanitizedData.samplingTemperature.gmp2,
+				sanitizedData.ph20C.evening,
+				sanitizedData.ph20C.earlyMorning,
+				sanitizedData.ph20C.gmp2,
+				sanitizedData.temperature.evening,
+				sanitizedData.temperature.earlyMorning,
+				sanitizedData.temperature.gmp2,
+				sanitizedData.titratableAcidity.evening,
+				sanitizedData.titratableAcidity.earlyMorning,
+				sanitizedData.titratableAcidity.gmp2,
+				sanitizedData.density20C.evening,
+				sanitizedData.density20C.earlyMorning,
+				sanitizedData.density20C.gmp2,
+				sanitizedData.fatContent.evening,
+				sanitizedData.fatContent.earlyMorning,
+				sanitizedData.fatContent.gmp2,
+				sanitizedData.nonFatSolids.evening,
+				sanitizedData.nonFatSolids.earlyMorning,
+				sanitizedData.nonFatSolids.gmp2,
+				sanitizedData.alcoholTest.evening,
+				sanitizedData.alcoholTest.earlyMorning,
+				sanitizedData.alcoholTest.gmp2,
+				sanitizedData.tram.evening,
+				sanitizedData.tram.earlyMorning,
+				sanitizedData.tram.gmp2,
+				parsedReportId,
+				userId
+			];
+
+			const result = await client.query(query, values);
+			if (!result.rows.length) {
+				return json({ error: 'Report not found or unauthorized' }, { status: 404 });
+			}
+
+			return json({ id: result.rows[0].id }, { status: 200 });
+		} finally {
+			client.release();
+		}
+	} catch (error) {
+		console.error('Server error:', error);
+		return json({ error: 'Internal server error' }, { status: 500 });
+	}
+};
