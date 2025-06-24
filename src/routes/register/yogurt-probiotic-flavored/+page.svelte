@@ -1,395 +1,885 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { Registry } from '$lib/auth/Registry';
-    import AuthGuard from '$lib/auth/AuthGuard.svelte';
-    import type { User } from '$lib/auth/User';
+	import { onMount } from 'svelte';
+	import { Auth } from '$lib/auth/Auth';
+	import AuthGuard from '$lib/auth/AuthGuard.svelte';
+	import type { User } from '$lib/auth/User';
+	import { writable } from 'svelte/store';
+	import { goto } from '$app/navigation';
+	import { Registry } from '$lib/auth/Registry';
 
-    let user: User | null = null;
+	export let data: { id: string };
 
-    let date = '';
-    let analysisDate = '';
-    let sampleNumberEvening = '';
-    let sampleNumberEarlyMorning = '';
-    let sampleNumberGmp2 = '';
-    let samplingTimeEvening = '';
-    let samplingTimeEarlyMorning = '';
-    let samplingTimeGmp2 = '';
-    let samplingTemperatureEvening = '';
-    let samplingTemperatureEarlyMorning = '';
-    let samplingTemperatureGmp2 = '';
-    let ph20CEvening = '';
-    let ph20CEarlyMorning = '';
-    let ph20CGmp2 = '';
-    let temperatureEvening = '';
-    let temperatureEarlyMorning = '';
-    let temperatureGmp2 = '';
-    let titratableAcidityEvening = '';
-    let titratableAcidityEarlyMorning = '';
-    let titratableAcidityGmp2 = '';
-    let density20CEvening = '';
-    let density20CEarlyMorning = '';
-    let density20CGmp2 = '';
-    let fatContentEvening = '';
-    let fatContentEarlyMorning = '';
-    let fatContentGmp2 = '';
-    let nonFatSolidsEvening = '';
-    let nonFatSolidsEarlyMorning = '';
-    let nonFatSolidsGmp2 = '';
-    let alcoholTestEvening = '';
-    let alcoholTestEarlyMorning = '';
-    let alcoholTestGmp2 = '';
-    let tramEvening = '';
-    let tramEarlyMorning = '';
-    let tramGmp2 = '';
+	let user: User | null = null;
 
-    onMount(() => {
-        Registry.auth.checkParams();
-        Registry.auth.getUser().subscribe((data: User) => {
-            user = data;
-        });
-    });
+	let date = '';
+	let analysisDate = '';
+	let sampleNumber1 = '';
+	let lot1 = '';
+	let flavor1 = '';
+	let productionDate1 = '';
+	let expirationDate1 = '';
+	let productionTemperature1 = '';
+	let coldChamberTemperature1 = '';
+	let samplingTime1 = '';
+	let netContent1 = '';
+	let sampleNumber2 = '';
+	let lot2 = '';
+	let flavor2 = '';
+	let productionDate2 = '';
+	let expirationDate2 = '';
+	let productionTemperature2 = '';
+	let coldChamberTemperature2 = '';
+	let samplingTime2 = '';
+	let netContent2 = '';
+	let sampleNumber3 = '';
+	let lot3 = '';
+	let flavor3 = '';
+	let productionDate3 = '';
+	let expirationDate3 = '';
+	let productionTemperature3 = '';
+	let coldChamberTemperature3 = '';
+	let samplingTime3 = '';
+	let netContent3 = '';
+	let sampleNumber4 = '';
+	let lot4 = '';
+	let flavor4 = '';
+	let productionDate4 = '';
+	let expirationDate4 = '';
+	let productionTemperature4 = '';
+	let coldChamberTemperature4 = '';
+	let samplingTime4 = '';
+	let netContent4 = '';
+	let sampleNumber5 = '';
+	let lot5 = '';
+	let flavor5 = '';
+	let productionDate5 = '';
+	let expirationDate5 = '';
+	let productionTemperature5 = '';
+	let coldChamberTemperature5 = '';
+	let samplingTime5 = '';
+	let netContent5 = '';
+	let fatContentM1 = '';
+	let fatContentM2 = '';
+	let fatContentM3 = '';
+	let fatContentM4 = '';
+	let fatContentM5 = '';
+	let fatContentObservation = '';
+	let sngM1 = '';
+	let sngM2 = '';
+	let sngM3 = '';
+	let sngM4 = '';
+	let sngM5 = '';
+	let sngObservation = '';
+	let titratableAcidityM1 = '';
+	let titratableAcidityM2 = '';
+	let titratableAcidityM3 = '';
+	let titratableAcidityM4 = '';
+	let titratableAcidityM5 = '';
+	let titratableAcidityObservation = '';
+	let phM1 = '';
+	let phM2 = '';
+	let phM3 = '';
+	let phM4 = '';
+	let phM5 = '';
+	let phObservation = '';
+	let phTemperatureM1 = '';
+	let phTemperatureM2 = '';
+	let phTemperatureM3 = '';
+	let phTemperatureM4 = '';
+	let phTemperatureM5 = '';
+	let phTemperatureObservation = '';
+	let colorM1 = '';
+	let colorM2 = '';
+	let colorM3 = '';
+	let colorM4 = '';
+	let colorM5 = '';
+	let colorObservation = '';
+	let smellM1 = '';
+	let smellM2 = '';
+	let smellM3 = '';
+	let smellM4 = '';
+	let smellM5 = '';
+	let smellObservation = '';
+	let tasteM1 = '';
+	let tasteM2 = '';
+	let tasteM3 = '';
+	let tasteM4 = '';
+	let tasteM5 = '';
+	let tasteObservation = '';
+	let appearanceM1 = '';
+	let appearanceM2 = '';
+	let appearanceM3 = '';
+	let appearanceM4 = '';
+	let appearanceM5 = '';
+	let appearanceObservation = '';
+	let probioticCountM1 = '';
+	let probioticCountM2 = '';
+	let probioticCountM3 = '';
+	let probioticCountM4 = '';
+	let probioticCountM5 = '';
+	let probioticCountObservation = '';
+	let coliformCountM1 = '';
+	let coliformCountM2 = '';
+	let coliformCountM3 = '';
+	let coliformCountM4 = '';
+	let coliformCountM5 = '';
+	let fecalColiformCountM1 = '';
+	let fecalColiformCountM2 = '';
+	let fecalColiformCountM3 = '';
+	let fecalColiformCountM4 = '';
+	let fecalColiformCountM5 = '';
+	let eColiPresenceM1 = '';
+	let eColiPresenceM2 = '';
+	let eColiPresenceM3 = '';
+	let eColiPresenceM4 = '';
+	let eColiPresenceM5 = '';
+	let moldYeastCountM1 = '';
+	let moldYeastCountM2 = '';
+	let moldYeastCountM3 = '';
+	let moldYeastCountM4 = '';
+	let moldYeastCountM5 = '';
+	let analysisTime = '';
 
-    async function saveForm() {
-        const formData = {
-            date,
-            analysisDate,
-            sampleNumber: {
-                evening: sampleNumberEvening,
-                earlyMorning: sampleNumberEarlyMorning,
-                gmp2: sampleNumberGmp2
-            },
-            samplingTime: {
-                evening: samplingTimeEvening,
-                earlyMorning: samplingTimeEarlyMorning,
-                gmp2: samplingTimeGmp2
-            },
-            samplingTemperature: {
-                evening: samplingTemperatureEvening,
-                earlyMorning: samplingTemperatureEarlyMorning,
-                gmp2: samplingTemperatureGmp2
-            },
-            ph20C: {
-                evening: ph20CEvening,
-                earlyMorning: ph20CEarlyMorning,
-                gmp2: ph20CGmp2
-            },
-            temperature: {
-                evening: temperatureEvening,
-                earlyMorning: temperatureEarlyMorning,
-                gmp2: temperatureGmp2
-            },
-            titratableAcidity: {
-                evening: titratableAcidityEvening,
-                earlyMorning: titratableAcidityEarlyMorning,
-                gmp2: titratableAcidityGmp2
-            },
-            density20C: {
-                evening: density20CEvening,
-                earlyMorning: density20CEarlyMorning,
-                gmp2: density20CGmp2
-            },
-            fatContent: {
-                evening: fatContentEvening,
-                earlyMorning: fatContentEarlyMorning,
-                gmp2: fatContentGmp2
-            },
-            nonFatSolids: {
-                evening: nonFatSolidsEvening,
-                earlyMorning: nonFatSolidsEarlyMorning,
-                gmp2: nonFatSolidsGmp2
-            },
-            alcoholTest: {
-                evening: alcoholTestEvening,
-                earlyMorning: alcoholTestEarlyMorning,
-                gmp2: alcoholTestGmp2
-            },
-            tram: {
-                evening: tramEvening,
-                earlyMorning: tramEarlyMorning,
-                gmp2: tramGmp2
-            }
-        };
+	let startDate: string = '2025-01-01';
+	let endDate: string = '2025-06-01';
+	let reports: any[] = [];
+	let error: string | null = null;
+	let loading: boolean = false;
 
-        try {
-            const response = await fetch('/api/raw-milk', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
+	onMount(async () => {
+		Registry.auth.checkParams();
+		Registry.auth.getUser().subscribe((data: User) => {
+			user = data;
+			if (user) {
+				console.log('Authenticated user:', user.userId);
+			} else {
+				console.log('No user authenticated, initiating login...');
+				Registry.auth.login({ redirectUri: window.location.href }).catch((error) => {
+					console.error('Login initiation failed:', error);
+				});
+			}
+		});
+	});
 
-            if (response.ok) {
-                alert('upload data sucess');
-            } else {
-                alert('error to upload data');
-            }
-        } catch (error) {
-            alert('error to save data');
-        }
-    }
+	async function saveForm(retryCount = 0) {
+		const formData = {
+			date,
+			analysisDate,
+			sampleNumber1,
+			lot1,
+			flavor1,
+			productionDate1,
+			expirationDate1,
+			productionTemperature1,
+			coldChamberTemperature1,
+			samplingTime1,
+			netContent1,
+			sampleNumber2,
+			lot2,
+			flavor2,
+			productionDate2,
+			expirationDate2,
+			productionTemperature2,
+			coldChamberTemperature2,
+			samplingTime2,
+			netContent2,
+			sampleNumber3,
+			lot3,
+			flavor3,
+			productionDate3,
+			expirationDate3,
+			productionTemperature3,
+			coldChamberTemperature3,
+			samplingTime3,
+			netContent3,
+			sampleNumber4,
+			lot4,
+			flavor4,
+			productionDate4,
+			expirationDate4,
+			productionTemperature4,
+			coldChamberTemperature4,
+			samplingTime4,
+			netContent4,
+			sampleNumber5,
+			lot5,
+			flavor5,
+			productionDate5,
+			expirationDate5,
+			productionTemperature5,
+			coldChamberTemperature5,
+			samplingTime5,
+			netContent5,
+			fatContentM1,
+			fatContentM2,
+			fatContentM3,
+			fatContentM4,
+			fatContentM5,
+			fatContentObservation,
+			sngM1,
+			sngM2,
+			sngM3,
+			sngM4,
+			sngM5,
+			sngObservation,
+			titratableAcidityM1,
+			titratableAcidityM2,
+			titratableAcidityM3,
+			titratableAcidityM4,
+			titratableAcidityM5,
+			titratableAcidityObservation,
+			phM1,
+			phM2,
+			phM3,
+			phM4,
+			phM5,
+			phObservation,
+			phTemperatureM1,
+			phTemperatureM2,
+			phTemperatureM3,
+			phTemperatureM4,
+			phTemperatureM5,
+			phTemperatureObservation,
+			colorM1,
+			colorM2,
+			colorM3,
+			colorM4,
+			colorM5,
+			colorObservation,
+			smellM1,
+			smellM2,
+			smellM3,
+			smellM4,
+			smellM5,
+			smellObservation,
+			tasteM1,
+			tasteM2,
+			tasteM3,
+			tasteM4,
+			tasteM5,
+			tasteObservation,
+			appearanceM1,
+			appearanceM2,
+			appearanceM3,
+			appearanceM4,
+			appearanceM5,
+			appearanceObservation,
+			probioticCountM1,
+			probioticCountM2,
+			probioticCountM3,
+			probioticCountM4,
+			probioticCountM5,
+			probioticCountObservation,
+			coliformCountM1,
+			coliformCountM2,
+			coliformCountM3,
+			coliformCountM4,
+			coliformCountM5,
+			fecalColiformCountM1,
+			fecalColiformCountM2,
+			fecalColiformCountM3,
+			fecalColiformCountM4,
+			fecalColiformCountM5,
+			eColiPresenceM1,
+			eColiPresenceM2,
+			eColiPresenceM3,
+			eColiPresenceM4,
+			eColiPresenceM5,
+			moldYeastCountM1,
+			moldYeastCountM2,
+			moldYeastCountM3,
+			moldYeastCountM4,
+			moldYeastCountM5,
+			analysisTime
+		};
+		let token = Registry.auth.getToken();
+		if (!token) {
+			console.warn('No token found in localStorage, redirecting to login...');
+			alert('No authentication token available. Redirecting to login...');
+			await Registry.auth.login({ redirectUri: window.location.href });
+			return;
+		}
+
+		console.log('Token before refresh:', token);
+
+		try {
+			const refreshed = await Registry.auth.refreshToken();
+			if (!refreshed) {
+				console.warn('Token refresh failed, possibly due to expired refresh token');
+				if (retryCount < 1) {
+					const refreshedAgain = await Registry.auth.refreshToken();
+					if (refreshedAgain) {
+						token = Registry.auth.getToken();
+						console.log('Token after second refresh:', token);
+					}
+				}
+			}
+			token = Registry.auth.getToken();
+			if (!token) {
+				console.error('No token available after refresh attempt');
+				throw new Error('Failed to obtain token after refresh');
+			}
+			console.log('Token after refresh:', token);
+		} catch (error) {
+			console.error('Error during token refresh:', error.message || error);
+			alert('Authentication error: Redirecting to login...');
+			await Registry.auth.login({ redirectUri: window.location.href });
+			return;
+		}
+		try {
+			const response = await fetch('/api/probiotic-yogurt', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`
+				},
+				body: JSON.stringify(formData)
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				alert('Data subida exitosamente: ' + (result.id ? `ID ${result.id}` : ''));
+			} else {
+				const result = await response.json();
+				console.error('API response:', result);
+				if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
+					const refreshed = await Registry.auth.refreshToken();
+					if (refreshed) {
+						return saveForm(retryCount + 1);
+					} else {
+						console.warn('Token refresh failed on retry');
+						alert('Sesion expirada. Recargando la pagina...');
+						await Registry.auth.login({ redirectUri: window.location.href });
+						return;
+					}
+				}
+				throw new Error(
+					`Failed to upload data: ${response.status} - ${result.message || result.error || response.statusText}`
+				);
+			}
+		} catch (err) {
+			console.error('Save error:', err);
+			error = `Error saving analysis: ${err.message}`;
+		}
+	}
+
+	async function fetchReports() {
+		if (!user) return;
+
+		loading = true;
+		error = null;
+
+		let token = Registry.auth.getToken();
+		if (!token) {
+			error = 'No authentication token available.';
+			loading = false;
+			return;
+		}
+
+		try {
+			const response = await fetch(`/api/probiotic-yogurt?startDate=${startDate}&endDate=${endDate}`, {
+				method: 'GET',
+				headers: { Authorization: `Bearer ${token}` }
+			});
+
+			if (response.ok) {
+				const result = await response.json();
+				reports = result.reports || [];
+			} else {
+				const result = await response.json();
+				error = result.error || 'Failed to fetch reports';
+			}
+		} catch (err) {
+			error = `Error fetching reports: ${err.message}`;
+		} finally {
+			loading = false;
+		}
+	}
+
+	function viewReport(reportId: string) {
+		if (!reportId || isNaN(parseInt(reportId))) {
+			error = 'Invalid report ID';
+			return;
+		}
+
+		const token = Registry.auth.getToken();
+		if (!token) {
+			error = 'No authentication token available.';
+			loading = false;
+			return;
+		}
+
+		console.log('Navigating to report with ID:', reportId, 'Token:', token);
+		goto(`/reports-form/report-probiotic/${reportId}`);
+	}
 </script>
 
 <AuthGuard manual={true} forceLogin={true}>
-    <div slot="authed" let:user>
-        <section class="form-section">
-            <h1>Yogurt probiotic analisis inform</h1>
-            <form on:submit|preventDefault={saveForm}>
-                <div class="date-section">
-                    <div class="form-row">
-                        <label>Date:</label>
-                        <input type="date" bind:value={date} />
-                    </div>
-                    <div class="form-row">
-                        <label>Analisis date:</label>
-                        <input type="date" bind:value={analysisDate} />
-                    </div>
-                </div>
+	<div slot="authed" let:user>
+		<section class="form-section">
+			<h1>Informe de Yogurt Probiótico y/o Saborizado</h1>
+			<form on:submit|preventDefault={() => saveForm()}>
+				<div class="date-section">
+					<div class="form-row">
+						<label>Fecha:</label>
+						<input type="date" bind:value={date} />
+					</div>
+					<div class="form-row">
+						<label>Fecha de analisis:</label>
+						<input type="date" bind:value={analysisDate} />
+					</div>
+				</div>
 
-                <div class="section">
-                    <h2>General information</h2>
-                    <table class="info-general-table">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th>Afternoon</th>
-                                <th>Morning</th>
-                                <th>GMP 2</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>N° Sample</td>
-                                <td><input type="text" bind:value={sampleNumberEvening} /></td>
-                                <td><input type="text" bind:value={sampleNumberEarlyMorning} /></td>
-                                <td><input type="text" bind:value={sampleNumberGmp2} /></td>
-                            </tr>
-                            <tr>
-                                <td>Sample hour</td>
-                                <td><input type="time" bind:value={samplingTimeEvening} /></td>
-                                <td><input type="time" bind:value={samplingTimeEarlyMorning} /></td>
-                                <td><input type="time" bind:value={samplingTimeGmp2} /></td>
-                            </tr>
-                            <tr>
-                                <td>Sample Temperature °C</td>
-                                <td><input type="number" bind:value={samplingTemperatureEvening} /></td>
-                                <td><input type="number" bind:value={samplingTemperatureEarlyMorning} /></td>
-                                <td><input type="number" bind:value={samplingTemperatureGmp2} /></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+				<div class="section">
+					<h2>Informacion general</h2>
+					<table class="info-general-table">
+						<thead>
+							<tr>
+								<th>N° de Muestra</th>
+								<th>Lote</th>
+								<th>Sabor</th>
+								<th>Fecha de Elaboración</th>
+								<th>Fecha de Vencimiento</th>
+								<th>Temperatura de Producción (°C)</th>
+								<th>Cámara Fría (°C)</th>
+								<th>Hora muestreo</th>
+								<th>Contenido Neto (g)</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><input type="text" bind:value={sampleNumber1} /></td>
+								<td><input type="text" bind:value={lot1} /></td>
+								<td><input type="text" bind:value={flavor1} /></td>
+								<td><input type="date" bind:value={productionDate1} /></td>
+								<td><input type="date" bind:value={expirationDate1} /></td>
+								<td><input type="number" step="0.1" bind:value={productionTemperature1} /></td>
+								<td><input type="number" step="0.1" bind:value={coldChamberTemperature1} /></td>
+								<td><input type="time" bind:value={samplingTime1} /></td>
+								<td><input type="number" step="0.1" bind:value={netContent1} /></td>
+							</tr>
+							<tr>
+								<td><input type="text" bind:value={sampleNumber2} /></td>
+								<td><input type="text" bind:value={lot2} /></td>
+								<td><input type="text" bind:value={flavor2} /></td>
+								<td><input type="date" bind:value={productionDate2} /></td>
+								<td><input type="date" bind:value={expirationDate2} /></td>
+								<td><input type="number" step="0.1" bind:value={productionTemperature2} /></td>
+								<td><input type="number" step="0.1" bind:value={coldChamberTemperature2} /></td>
+								<td><input type="time" bind:value={samplingTime2} /></td>
+								<td><input type="number" step="0.1" bind:value={netContent2} /></td>
+							</tr>
+							<tr>
+								<td><input type="text" bind:value={sampleNumber3} /></td>
+								<td><input type="text" bind:value={lot3} /></td>
+								<td><input type="text" bind:value={flavor3} /></td>
+								<td><input type="date" bind:value={productionDate3} /></td>
+								<td><input type="date" bind:value={expirationDate3} /></td>
+								<td><input type="number" step="0.1" bind:value={productionTemperature3} /></td>
+								<td><input type="number" step="0.1" bind:value={coldChamberTemperature3} /></td>
+								<td><input type="time" bind:value={samplingTime3} /></td>
+								<td><input type="number" step="0.1" bind:value={netContent3} /></td>
+							</tr>
+							<tr>
+								<td><input type="text" bind:value={sampleNumber4} /></td>
+								<td><input type="text" bind:value={lot4} /></td>
+								<td><input type="text" bind:value={flavor4} /></td>
+								<td><input type="date" bind:value={productionDate4} /></td>
+								<td><input type="date" bind:value={expirationDate4} /></td>
+								<td><input type="number" step="0.1" bind:value={productionTemperature4} /></td>
+								<td><input type="number" step="0.1" bind:value={coldChamberTemperature4} /></td>
+								<td><input type="time" bind:value={samplingTime4} /></td>
+								<td><input type="number" step="0.1" bind:value={netContent4} /></td>
+							</tr>
+							<tr>
+								<td><input type="text" bind:value={sampleNumber5} /></td>
+								<td><input type="text" bind:value={lot5} /></td>
+								<td><input type="text" bind:value={flavor5} /></td>
+								<td><input type="date" bind:value={productionDate5} /></td>
+								<td><input type="date" bind:value={expirationDate5} /></td>
+								<td><input type="number" step="0.1" bind:value={productionTemperature5} /></td>
+								<td><input type="number" step="0.1" bind:value={coldChamberTemperature5} /></td>
+								<td><input type="time" bind:value={samplingTime5} /></td>
+								<td><input type="number" step="0.1" bind:value={netContent5} /></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 
-                <div class="section">
-                    <h2>Physicochemical information</h2>
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Unit</th>
-                                <th>Afternoon</th>
-                                <th>Morning</th>
-                                <th>GMP 2</th>
-                                <th>Range</th>
-                                <th>Test method</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>pH a 20°C</td>
-                                <td>pH Unity</td>
-                                <td><input type="number" step="0.01" bind:value={ph20CEvening} /></td>
-                                <td><input type="number" step="0.01" bind:value={ph20CEarlyMorning} /></td>
-                                <td><input type="number" step="0.01" bind:value={ph20CGmp2} /></td>
-                                <td>6.60 a 6.80</td>
-                                <td>Potentiometric</td>
-                            </tr>
-                            <tr>
-                                <td>Temperature</td>
-                                <td>°C</td>
-                                <td><input type="number" step="0.1" bind:value={temperatureEvening} /></td>
-                                <td><input type="number" step="0.1" bind:value={temperatureEarlyMorning} /></td>
-                                <td><input type="number" step="0.1"bind:value={temperatureGmp2} /></td>
-                                <td>15 a 25</td>
-                                <td>Thermometer</td>
-                            </tr>
-                            <tr>
-                                <td>Titratable acidity</td>
-                                <td>%Lactic acid</td>
-                                <td><input type="number" step="0.01" bind:value={titratableAcidityEvening} /></td>
-                                <td><input type="number" step="0.01" bind:value={titratableAcidityEarlyMorning} /></td>
-                                <td><input type="number" step="0.01" bind:value={titratableAcidityGmp2} /></td>
-                                <td>0.13 a 0.18</td>
-                                <td>Volumetric method</td>
-                            </tr>
-                            <tr>
-                                <td>Densidity to 20°C</td>
-                                <td>g/cm³</td>
-                                <td><input type="number" step="0.001" bind:value={density20CEvening} /></td>
-                                <td><input type="number" step="0.001" bind:value={density20CEarlyMorning} /></td>
-                                <td><input type="number" step="0.001" bind:value={density20CGmp2} /></td>
-                                <td>1.028 a 1.034</td>
-                                <td>Lactodensimeter</td>
-                            </tr>
-                            <tr>
-                                <td>Fat matter</td>
-                                <td>%</td>
-                                <td><input type="number" step="0.1" bind:value={fatContentEvening} /></td>
-                                <td><input type="number" step="0.1" bind:value={fatContentEarlyMorning} /></td>
-                                <td><input type="number" step="0.1" bind:value={fatContentGmp2} /></td>
-                                <td>Min. 3.00</td>
-                                <td>Gerbe Method</td>
-                            </tr>
-                            <tr>
-                                <td>Non-Fat solids</td>
-                                <td>%</td>
-                                <td><input type="number" step="0.1" bind:value={nonFatSolidsEvening} /></td>
-                                <td><input type="number" step="0.1" bind:value={nonFatSolidsEarlyMorning} /></td>
-                                <td><input type="number" step="0.1" bind:value={nonFatSolidsGmp2} /></td>
-                                <td>Min. 8.2</td>
-                                <td>Bucziki's lactometer</td>
-                            </tr>
-                            <tr>
-                                <td>Alcoholimetry</td>
-                                <td>-</td>
-                                <td><input type="text" bind:value={alcoholTestEvening} /></td>
-                                <td><input type="text" bind:value={alcoholTestEarlyMorning} /></td>
-                                <td><input type="text" bind:value={alcoholTestGmp2} /></td>
-                                <td>Negative</td>
-                                <td>Alcohol Test to 79%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+				<div class="section">
+					<h2>Analisis Fisicoquimica</h2>
+					<table class="results-table">
+						<thead>
+							<tr>
+								<th>Parametro</th>
+								<th>Unidad</th>
+								<th>M1:</th>
+								<th>M2:</th>
+								<th>M3:</th>
+								<th>M4:</th>
+								<th>M5:</th>
+								<th>Rango de aceptacion</th>
+								<th>Observaciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Materia Grasa (%)</td>
+								<td>%</td>
+								<td><input type="number" step="0.1" bind:value={fatContentM1} /></td>
+								<td><input type="number" step="0.1" bind:value={fatContentM2} /></td>
+								<td><input type="number" step="0.1" bind:value={fatContentM3} /></td>
+								<td><input type="number" step="0.1" bind:value={fatContentM4} /></td>
+								<td><input type="number" step="0.1" bind:value={fatContentM5} /></td>
+								<td>min 2.5</td>
+								<td><input type="text" bind:value={fatContentObservation} /></td>
+							</tr>
+							<tr>
+								<td>SNG (%)</td>
+								<td>%</td>
+								<td><input type="number" step="0.1" bind:value={sngM1} /></td>
+								<td><input type="number" step="0.1" bind:value={sngM2} /></td>
+								<td><input type="number" step="0.1" bind:value={sngM3} /></td>
+								<td><input type="number" step="0.1" bind:value={sngM4} /></td>
+								<td><input type="number" step="0.1" bind:value={sngM5} /></td>
+								<td>8.0 - 14.0</td>
+								<td><input type="text" bind:value={sngObservation} /></td>
+							</tr>
+							<tr>
+								<td>Acidez Titulable (%)</td>
+								<td>%</td>
+								<td><input type="number" step="0.01" bind:value={titratableAcidityM1} /></td>
+								<td><input type="number" step="0.01" bind:value={titratableAcidityM2} /></td>
+								<td><input type="number" step="0.01" bind:value={titratableAcidityM3} /></td>
+								<td><input type="number" step="0.01" bind:value={titratableAcidityM4} /></td>
+								<td><input type="number" step="0.01" bind:value={titratableAcidityM5} /></td>
+								<td>0.6 - 1.5</td>
+								<td><input type="text" bind:value={titratableAcidityObservation} /></td>
+							</tr>
+							<tr>
+								<td>Acidez (pH)</td>
+								<td>pH</td>
+								<td><input type="number" step="0.01" bind:value={phM1} /></td>
+								<td><input type="number" step="0.01" bind:value={phM2} /></td>
+								<td><input type="number" step="0.01" bind:value={phM3} /></td>
+								<td><input type="number" step="0.01" bind:value={phM4} /></td>
+								<td><input type="number" step="0.01" bind:value={phM5} /></td>
+								<td>4.00 - 4.60</td>
+								<td><input type="text" bind:value={phObservation} /></td>
+							</tr>
+							<tr>
+								<td>Temperatura pH (°C)</td>
+								<td>°C</td>
+								<td><input type="number" step="0.1" bind:value={phTemperatureM1} /></td>
+								<td><input type="number" step="0.1" bind:value={phTemperatureM2} /></td>
+								<td><input type="number" step="0.1" bind:value={phTemperatureM3} /></td>
+								<td><input type="number" step="0.1" bind:value={phTemperatureM4} /></td>
+								<td><input type="number" step="0.1" bind:value={phTemperatureM5} /></td>
+								<td>25°C</td>
+								<td><input type="text" bind:value={phTemperatureObservation} /></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 
+				<div class="section">
+					<h2>Analisis organolepticos</h2>
+					<table class="results-table">
+						<thead>
+							<tr>
+								<th>Parametro</th>
+								<th>Descripcion</th>
+								<th>M1:</th>
+								<th>M2:</th>
+								<th>M3:</th>
+								<th>M4:</th>
+								<th>M5:</th>
+								<th>Observaciones</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>Color</td>
+								<td>Blanqueo o propio al sabor</td>
+								<td><input type="text" bind:value={colorM1} /></td>
+								<td><input type="text" bind:value={colorM2} /></td>
+								<td><input type="text" bind:value={colorM3} /></td>
+								<td><input type="text" bind:value={colorM4} /></td>
+								<td><input type="text" bind:value={colorM5} /></td>
+								<td><input type="text" bind:value={colorObservation} /></td>
+							</tr>
+							<tr>
+								<td>Olor</td>
+								<td>Agradable, característico al Yogurt</td>
+								<td><input type="text" bind:value={smellM1} /></td>
+								<td><input type="text" bind:value={smellM2} /></td>
+								<td><input type="text" bind:value={smellM3} /></td>
+								<td><input type="text" bind:value={smellM4} /></td>
+								<td><input type="text" bind:value={smellM5} /></td>
+								<td><input type="text" bind:value={smellObservation} /></td>
+							</tr>
+							<tr>
+								<td>Sabor</td>
+								<td>Fresco, característico al Yogurt</td>
+								<td><input type="text" bind:value={tasteM1} /></td>
+								<td><input type="text" bind:value={tasteM2} /></td>
+								<td><input type="text" bind:value={tasteM3} /></td>
+								<td><input type="text" bind:value={tasteM4} /></td>
+								<td><input type="text" bind:value={tasteM5} /></td>
+								<td><input type="text" bind:value={tasteObservation} /></td>
+							</tr>
+							<tr>
+								<td>Aspecto</td>
+								<td>Agadable, lig. Ácido</td>
+								<td><input type="text" bind:value={appearanceM1} /></td>
+								<td><input type="text" bind:value={appearanceM2} /></td>
+								<td><input type="text" bind:value={appearanceM3} /></td>
+								<td><input type="text" bind:value={appearanceM4} /></td>
+								<td><input type="text" bind:value={appearanceM5} /></td>
+								<td><input type="text" bind:value={appearanceObservation} /></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 
-                <div class="section">
-                    <h2>Microbiologic information</h2>
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Unit</th>
-                                <th>Afternoon</th>
-                                <th>Morning</th>
-                                <th>GMP 2</th>
-                                <th>Range</th>
-                                <th>Test method</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>TRAM (Methylene reduction time)</td>
-                                <td>h</td>
-                                <td><input type="text" bind:value={tramEvening} /></td>
-                                <td><input type="text" bind:value={tramEarlyMorning} /></td>
-                                <td><input type="text" bind:value={tramGmp2} /></td>
-                                <td>> 1h</td>
-                                <td>Reductase test</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+				<div class="section">
+					<h2>Analisis microbiologico</h2>
+					<table class="results-table">
+						<thead>
+							<tr>
+								<th>Hora de análisis</th>
+								<th>Requisito</th>
+								<th>Method</th>
+								<th>M1:</th>
+								<th>M2:</th>
+								<th>M3:</th>
+								<th>M4:</th>
+								<th>M5:</th>
+								<th>Criterio de aceptacion</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><input type="time" bind:value={analysisTime} /></td>
+								<td>Recuento de Probióticos (UFC/g)</td>
+								<td>Rcto. en placa</td>
+								<td><input type="number" bind:value={probioticCountM1} /></td>
+								<td><input type="number" bind:value={probioticCountM2} /></td>
+								<td><input type="number" bind:value={probioticCountM3} /></td>
+								<td><input type="number" bind:value={probioticCountM4} /></td>
+								<td><input type="number" bind:value={probioticCountM5} /></td>
+								<td>min 10^6</td>
+							</tr>
+							<tr>
+								<td rowspan="4"></td>
+								<td>Recuento Coliformes Totales</td>
+								<td>Rcto. en placa</td>
+								<td><input type="number" bind:value={coliformCountM1} /></td>
+								<td><input type="number" bind:value={coliformCountM2} /></td>
+								<td><input type="number" bind:value={coliformCountM3} /></td>
+								<td><input type="number" bind:value={coliformCountM4} /></td>
+								<td><input type="number" bind:value={coliformCountM5} /></td>
+								<td>n=5, m=10, M=100, c=2</td>
+							</tr>
+							<tr>
+								<td>Recuento de Coliformes Fecales</td>
+								<td>Rcto. en placa</td>
+								<td><input type="number" bind:value={fecalColiformCountM1} /></td>
+								<td><input type="number" bind:value={fecalColiformCountM2} /></td>
+								<td><input type="number" bind:value={fecalColiformCountM3} /></td>
+								<td><input type="number" bind:value={fecalColiformCountM4} /></td>
+								<td><input type="number" bind:value={fecalColiformCountM5} /></td>
+								<td>n=5, m=0, M=0, c=0</td>
+							</tr>
+							<tr>
+								<td>Presencia Escherichia coli</td>
+								<td>Ec. Medio</td>
+								<td><input type="text" bind:value={eColiPresenceM1} /></td>
+								<td><input type="text" bind:value={eColiPresenceM2} /></td>
+								<td><input type="text" bind:value={eColiPresenceM3} /></td>
+								<td><input type="text" bind:value={eColiPresenceM4} /></td>
+								<td><input type="text" bind:value={eColiPresenceM5} /></td>
+								<td>ausencia</td>
+							</tr>
+							<tr>
+								<td>Recuento de Mohos y Levaduras</td>
+								<td>Rcto. en placa</td>
+								<td><input type="number" bind:value={moldYeastCountM1} /></td>
+								<td><input type="number" bind:value={moldYeastCountM2} /></td>
+								<td><input type="number" bind:value={moldYeastCountM3} /></td>
+								<td><input type="number" bind:value={moldYeastCountM4} /></td>
+								<td><input type="number" bind:value={moldYeastCountM5} /></td>
+								<td>n=5, m=1, M=10, c=1</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 
-                <div class="form-actions">
-                    <button type="submit">Save</button>
-                </div>
-            </form>
-        </section>
-    </div>
-    <div slot="not_authed">
-        <p>Log in for join to DiaryLab</p>
-    </div>
+				<div class="form-actions">
+					<button type="submit">Guardar</button>
+				</div>
+			</form>
+
+			<div class="mt-6">
+				<h2 class="text-xl font-semibold mb-2">Ver reportes historicos</h2>
+				<div class="flex gap-4 mb-4">
+					<div>
+						<label for="startDate" class="block text-lg font-medium">Fecha de inicio:</label>
+						<input
+							type="date"
+							id="startDate"
+							bind:value={startDate}
+							on:change={fetchReports}
+							class="mt-1 block border rounded p-2"
+						/>
+					</div>
+					<div>
+						<label for="endDate" class="block text-lg font-medium">Fecha final:</label>
+						<input
+							type="date"
+							id="endDate"
+							bind:value={endDate}
+							on:change={fetchReports}
+							class="mt-1 block border rounded p-2"
+						/>
+					</div>
+				</div>
+
+				{#if loading}
+					<p>Loading reports...</p>
+				{:else if error}
+					<p class="text-red-600">{error}</p>
+				{:else if reports.length === 0}
+					<p>No se han encontrado reportes</p>
+				{:else}
+					<table class="w-full border-collapse">
+						<thead>
+							<tr>
+								<th class="border p-2">N muestra</th>
+								<th class="border p-2">Fecha</th>
+								<th class="border p-2">Usuario</th>
+								<th class="border p-2">Accion</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each reports as report}
+								<tr>
+									<td class="border p-2">
+										{#if report.sampleNumber1}Muestra: {report.sampleNumber1}{/if}
+									</td>
+									<td class="border p-2">{report.date}</td>
+									<td class="border p-2">{report.userId}</td>
+									<td class="border p-2">
+										<button
+											on:click={() => viewReport(report.id)}
+											class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+										>
+											Ver
+										</button>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				{/if}
+			</div>
+		</section>
+	</div>
+
+	<div slot="not_authed">
+		<p>Log in for join to DiaryLab</p>
+	</div>
 </AuthGuard>
 
 <style>
-    .form-section {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-    }
-    h1 {
-        color: #ff0000;
-        font-size: 2rem;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .section {
-        margin-bottom: 2rem;
-    }
-    h2 {
-        background-color: #f5e5c9;
-        padding: 0.5rem;
-        font-size: 1.2rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-    .date-section {
-        margin-bottom: 1rem;
-    }
-    .form-row {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-    .form-row label {
-        width: 200px;
-        font-weight: bold;
-    }
-    .form-row input {
-        flex: 1;
-        padding: 0.5rem;
-        border: 1px solid #000;
-        border-radius: 4px;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 1rem;
-    }
-    th, td {
-        border: 1px solid #000;
-        padding: 0.5rem;
-        text-align: center;
-    }
-    th {
-        background-color: #f5e5c9;
-        font-weight: bold;
-    }
-    td input {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #000;
-        border-radius: 4px;
-        box-sizing: border-box;
-    }
-    .info-general-table {
-        margin-bottom: 1rem;
-    }
-    .info-general-table td:first-child {
-        text-align: left;
-        font-weight: bold;
-        background-color: #f9f9f9;
-    }
-    .results-table tbody tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-    .form-actions {
-        text-align: center;
-    }
-    button {
-        background-color: #007bff;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 4px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    button:hover {
-        background-color: #0056b3;
-    }
+	.form-section {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+	h1 {
+		color: #ff0000;
+		font-size: 2rem;
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+	.section {
+		margin-bottom: 2rem;
+	}
+	h2 {
+		background-color: #f5e5c9;
+		padding: 0.5rem;
+		font-size: 1.2rem;
+		font-weight: bold;
+		margin-bottom: 1rem;
+		text-align: center;
+	}
+	.date-section {
+		margin-bottom: 1rem;
+	}
+	.form-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+	.form-row label {
+		width: 200px;
+		font-weight: bold;
+	}
+	.form-row input {
+		flex: 1;
+		padding: 0.5rem;
+		border: 1px solid #000;
+		border-radius: 4px;
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-bottom: 1rem;
+	}
+	th,
+	td {
+		border: 1px solid #000;
+		padding: 0.5rem;
+		text-align: center;
+	}
+	th {
+		background-color: #f5e5c9;
+		font-weight: bold;
+	}
+	td input {
+		width: 100%;
+		padding: 0.5rem;
+		border: 1px solid #000;
+		border-radius: 4px;
+		box-sizing: border-box;
+	}
+	.info-general-table {
+		margin-bottom: 1rem;
+	}
+	.info-general-table td:first-child {
+		text-align: left;
+		font-weight: bold;
+		background-color: #f9f9f9;
+	}
+	.results-table tbody tr:nth-child(even) {
+		background-color: #f9f9f9;
+	}
+	.form-actions {
+		text-align: center;
+	}
+	button {
+		background-color: #007bff;
+		color: white;
+		padding: 0.75rem 1.5rem;
+		border: none;
+		border-radius: 4px;
+		font-size: 1rem;
+		cursor: pointer;
+		transition: background-color 0.3s;
+	}
+	button:hover {
+		background-color: #5b9ce3;
+	}
 </style>

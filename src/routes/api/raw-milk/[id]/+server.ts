@@ -340,3 +340,67 @@ export const PUT: RequestHandler = async ({ request, params }) => {
 		return json({ error: 'Internal server error' }, { status: 500 });
 	}
 };
+
+export const DELETE: RequestHandler = async ({ request, params }) => {
+	try {
+		const authHeader = request.headers.get('Authorization');
+		if (!authHeader?.startsWith('Bearer ')) {
+			return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+		}
+
+		const token = authHeader.replace('Bearer ', '');
+		let decodedToken: { sub: string };
+		try {
+			decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY || '', {
+				algorithms: ['RS256']
+			}) as { sub: string };
+		} catch (error) {
+			console.error('Token verification failed:', error);
+			return json({ error: 'Invalid token' }, { status: 401 });
+		}
+
+		const userId = sanitizeHtml(decodedToken.sub);
+		const reportId = sanitizeHtml(params.id || '');
+
+		const parsedReportId = parseInt(reportId, 10);
+		if (isNaN(parsedReportId) || parsedReportId <= 0) {
+			return json({ error: 'Invalid report ID' }, { status: 400 });
+		}
+
+		const client = await pool.connect();
+		try {
+			const checkQuery = `
+				SELECT id
+				FROM raw_milk
+				WHERE id = $1 AND user_id = $2
+				FOR UPDATE
+			`;
+			const checkResult = await client.query(checkQuery, [parsedReportId, userId]);
+
+			if (!checkResult.rows.length) {
+				return json({ error: 'Report not found or unauthorized' }, { status: 404 });
+			}
+
+			const deleteQuery = `
+				DELETE FROM raw_milk
+				WHERE id = $1 AND user_id = $2
+				RETURNING id
+			`;
+			const deleteResult = await client.query(deleteQuery, [parsedReportId, userId]);
+
+			if (deleteResult.rowCount === 0) {
+				return json({ error: 'Report deletion failed' }, { status: 500 });
+			}
+
+			return json({ message: 'Report deleted successfully', id: parsedReportId }, { status: 200 });
+		} catch (error) {
+			console.error('Database error during deletion:', error);
+			return json({ error: 'Internal server error' }, { status: 500 });
+		} finally {
+			client.release(); 
+		}
+	} catch (error) {
+		console.error('Unexpected error:', error);
+		return json({ error: 'Internal server error' }, { status: 500 });
+	}
+};

@@ -88,19 +88,19 @@
             labels: chartData.map((row) => row.date),
             datasets: [
               {
-                label: 'titratable acidity (Afternoon)',
+                label: 'Acidez Titulable (Tarde)',
                 data: chartData.map((row) => row.titratable_acidity.evening),
                 borderColor: 'blue',
                 fill: false,
               },
               {
-                label: 'titratable acidity  (Early morning)',
+                label: 'Acidez Titulable  (Madrugada)',
                 data: chartData.map((row) => row.titratable_acidity.earlyMorning),
                 borderColor: 'green',
                 fill: false,
               },
               {
-                label: 'titratable acidity  (GMP 2)',
+                label: 'Acidez Titulable  (GMP 2)',
                 data: chartData.map((row) => row.titratable_acidity.gmp2),
                 borderColor: 'red',
                 fill: false,
@@ -114,7 +114,7 @@
                 suggestedMax: 0.19,
                   title: {
                     display: true,
-                      text: 'Titratable Acidity (%)'
+                      text: 'Acidez Titulable (%)'
                       },
                       ticks: {
                         callback: (value) => value.toFixed(2), 
@@ -132,12 +132,12 @@
 </script>
 
 <div class="report-section">
-  <h1>Sample evaluation report - raw milk</h1>
+  <h1>Reporte de muestra - Leche cruda</h1>
   {#if errorMessage}
     <p style="color: red;">Error: {errorMessage}</p>
   {:else}
     <div class="chart-container">
-      <h2>Titratable Acidity</h2>
+      <h2>Acidez Titulable </h2>
       <canvas id="phChart"></canvas>
     </div>
   {/if}

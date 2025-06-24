@@ -22,26 +22,27 @@
 
         <section class="workflow-section">
             <div class="content">
-                <h2 class="section-title">DairyLab System</h2>
-                <h1 class="main-title">How DiaryLab Can Improve Your Lab Workflow</h1>
+                <h2 class="section-title">Sistema de DairyLab</h2>
+                <h1 class="main-title">Cómo DiaryLab puede mejorar el flujo de trabajo de su laboratorio</h1>
                 <p class="description">
-                    How DiaryLab offers to you the way of manage a register system of Laboratories
-                    having a easy way for add, edit and delete data and also see the data of a visible way
-                    as a prediction visualization of a certain parameter of milk
+                    DiaryLab le ofrece la posibilidad de gestionar un sistema de registro 
+                    de laboratorios, con una forma sencilla de añadir, editar y eliminar datos, 
+                    así como de visualizarlos de forma visible, como una visualización predictiva 
+                    de un determinado parámetro de la leche
                 </p>
                 <p class="description">
                     
                 </p>
                 <ul class="features-list">
-                    <li><span class="checkmark">✔</span> Data Base Secure Software</li>
-                    <li><span class="checkmark">✔</span> Adaptable to Small Laboratories</li>
-                    <li><span class="checkmark">✔</span> Accurate Quality Control</li>
+                    <li><span class="checkmark">✔</span> Software seguro de base de datos/li>
+                    <li><span class="checkmark">✔</span> Adaptable a pequeños laboratorios</li>
+                    <li><span class="checkmark">✔</span> Control de calidad preciso</li>
                     <li><span class="checkmark">✔</span> Sample Manager</li>
-                    <li><span class="checkmark">✔</span> Perfect for register and manipulate templates</li>
-                    <li><span class="checkmark">✔</span> Prediction Module</li>
-                    <li><span class="checkmark">✔</span> Graphic System Integrated</li>
-                    <li><span class="checkmark">✔</span> Alert Management Made Easy</li>
-                    <li><span class="checkmark">✔</span> Guess mode Integrated</li>
+                    <li><span class="checkmark">✔</span> Perfecta para registrar y manipular plantillas.</li>
+                    <li><span class="checkmark">✔</span> Modulo de predicciones</li>
+                    <li><span class="checkmark">✔</span> Sistema grafico integrado</li>
+                    <li><span class="checkmark">✔</span> Gestión de alertas simplificada</li>
+                    <li><span class="checkmark">✔</span> Modo invitado integrado</li>
                 </ul>
             </div>
             <div class="mockup-images">
@@ -59,14 +60,14 @@
         </section>
 
         <section class="additional-section">
-            <h2>More About DiaryLab</h2>
+            <h2>Mas acerca de DiaryLab</h2>
             <p>
-                This is a free trial demo for DiaryLab that helps you with automate and manage your laboratory without impediments
+               Esta es una demostración de prueba gratuita de DiaryLab que le ayuda a automatizar y administrar su laboratorio sin impedimentos.
             </p>
         </section>
     </div>
     <div slot="not_authed">
-        <p>log in for enter to DairyLab</p>
+        <p>Iniciar sesion para ingresar a DiaryLab</p>
     </div>
 </AuthGuard>
 

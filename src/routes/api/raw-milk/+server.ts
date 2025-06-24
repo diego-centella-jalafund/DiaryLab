@@ -178,59 +178,8 @@ export const GET: RequestHandler = async ({ request, url }) => {
             sampleNumber: {
               evening: row.evening_sample_number,
               earlyMorning: row.early_morning_sample_number,
-              gmp2: row.gmp2_sample_number,
-            },
-            samplingTime: {
-              evening: row.evening_sampling_time,
-              earlyMorning: row.early_morning_sampling_time,
-              gmp2: row.gmp2_sampling_time,
-            },
-            samplingTemperature: {
-              evening: row.evening_sampling_temperature,
-              earlyMorning: row.early_morning_sampling_temperature,
-              gmp2: row.gmp2_sampling_temperature,
-            },
-            ph20C: {
-              evening: row.ph_20c_evening,
-              earlyMorning: row.ph_20c_early_morning,
-              gmp2: row.ph_20c_gmp2,
-            },
-            temperature: {
-              evening: row.evening_temperature,
-              earlyMorning: row.early_morning_temperature,
-              gmp2: row.gmp2_temperature,
-            },
-            titratableAcidity: {
-              evening: row.titratable_acidity_evening,
-              earlyMorning: row.titratable_acidity_early_morning,
-              gmp2: row.titratable_acidity_gmp2,
-            },
-            density20C: {
-              evening: row.density_20c_evening,
-              earlyMorning: row.density_20c_early_morning,
-              gmp2: row.density_20c_gmp2,
-            },
-            fatContent: {
-              evening: row.fat_content_evening,
-              earlyMorning: row.fat_content_early_morning,
-              gmp2: row.fat_content_gmp2,
-            },
-            nonFatSolids: {
-              evening: row.non_fat_solids_evening,
-              earlyMorning: row.non_fat_solids_early_morning,
-              gmp2: row.non_fat_solids_gmp2,
-            },
-            alcoholTest: {
-              evening: row.alcohol_test_evening,
-              earlyMorning: row.alcohol_test_early_morning,
-              gmp2: row.alcohol_test_gmp2,
-            },
-            tram: {
-              evening: row.tram_evening,
-              earlyMorning: row.tram_early_morning,
-              gmp2: row.tram_gmp2,
-            },
-            createdAt: row.created_at,
+              gmp2: row.gmp2_sample_number
+            }
           }));
   
           return json({ reports }, { status: 200 });
