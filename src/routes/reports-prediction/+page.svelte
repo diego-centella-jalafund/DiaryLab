@@ -30,7 +30,7 @@
                             labels: predictions.map((pred) => pred.date),
                             datasets: [
                                 {
-                                    label: 'Predicted Titratable Acidity',
+                                    label: 'Acidez titulable predicha',
                                     data: predictions.map((pred) => pred.titratable_acidity_predicted),
                                     borderColor: 'purple',
                                     fill: false,
@@ -45,7 +45,7 @@
                                     suggestedMax: 0.19,
                                     title: {
                                         display: true,
-                                        text: 'Titratable Acidity (%)'
+                                        text: 'Acidez titulable (%)'
                                     },
                                     ticks: {
                                         callback: (value) => value.toFixed(2),
@@ -68,7 +68,7 @@
     });
 </script>
 
-<h1>Prediction Report - Titratable Acidity</h1>
+<h1>Reporte de prediccion - Acidez titulable</h1>
 
 {#if error}
     <p style="color: red;">Error: {error}</p>
@@ -77,8 +77,8 @@
     <table>
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Titratable Acidity Predicted (% Titratable)</th>
+                <th>Fecha</th>
+                <th>Acidez titulable predicha (% Titulable)</th>
             </tr>
         </thead>
         <tbody>
@@ -91,7 +91,7 @@
         </tbody>
     </table>
     <div class="chart-container">
-        <h2>Predicted Titratable Acidity (Next 20 Days)</h2>
+        <h2>Acidez titulable predicha (Siguientes 20 Dias)</h2>
         <div style="position: relative; height: 400px; width: 100%;">
             <canvas id="acidityChart"></canvas>
         </div>

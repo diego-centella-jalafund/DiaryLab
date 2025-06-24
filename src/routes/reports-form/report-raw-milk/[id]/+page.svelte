@@ -238,12 +238,83 @@
 			error.set(`Error saving report: ${err.message}`);
 		}
 	}
+
+		async function deleteReport(retryCount=0) {
+		if (!authInstance) {
+			error.set('Authentication not initialized');
+			loading.set(false);
+			return;
+		}
+
+		let token: string | null;
+		try {
+			const refreshed = await authInstance.refreshToken();
+			token = authInstance.getToken();
+			if (!refreshed && !token && retryCount === 0) {
+				if (!loginInitiated) {
+					loginInitiated = true;
+					await authInstance.login({ redirectUri: window.location.href });
+				}
+				return;
+			}
+		} catch (err) {
+			console.error('Token refresh error:', err);
+			error.set('Authentication error');
+			if (!loginInitiated) {
+				loginInitiated = true;
+				await authInstance.login({ redirectUri: window.location.href });
+			}
+			loading.set(false);
+			return;
+		}
+
+		if (!token) {
+			error.set('No authentication token');
+			if (!loginInitiated) {
+				loginInitiated = true;
+				await authInstance.login({ redirectUri: window.location.href });
+			}
+			loading.set(false);
+			return;
+		}
+
+		try {
+			const response = await fetch(`/api/raw-milk/${data.id}`, {
+				method: 'DELETE',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (response.ok) {
+				alert('Reporte eliminado con éxito!');
+				goto('/register/raw-milk');
+			} else {
+				const result = await response.json();
+				if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
+					const refreshed = await authInstance.refreshToken();
+					if (refreshed) {
+						return deleteReport(retryCount + 1);
+					}
+				}
+				throw new Error(
+					`Fallo al eliminar el reporte: ${response.status} - ${result.message || result.error || response.statusText}`
+				);
+			}
+		} catch (err) {
+			console.error('Delete error:', err);
+			error.set(`Error al eliminar reporte: ${err.message}`);
+		} finally {
+			loading.set(false);
+		}
+	}
 </script>
 
 <AuthGuard manual={true} forceLogin={true}>
 	<div slot="authed" let:user>
 		<section class="form-section">
-			<h1>Raw Milk Analysis Report (ID: {data.id})</h1>
+			<h1>Reporte de analisis de Leche cruda (ID: {data.id})</h1>
 
 			{#if $loading}
 				<p>Loading report...</p>
@@ -254,41 +325,41 @@
 				<form on:submit|preventDefault={saveReport}>
 					<div class="date-section">
 						<div class="form-row">
-							<label for="date">Date:</label>
+							<label for="date">Fecha:</label>
 							<input type="date" id="date" bind:value={formData.date} required />
 						</div>
 						<div class="form-row">
-							<label for="analysisDate">Analysis Date:</label>
+							<label for="analysisDate">Fecha de analisis:</label>
 							<input type="date" id="analysisDate" bind:value={formData.analysisDate} required />
 						</div>
 					</div>
 
 					<div class="section">
-						<h2>General Information</h2>
+						<h2>Informacion general</h2>
 						<table class="info-general-table">
 							<thead>
 								<tr>
 									<th></th>
-									<th>Afternoon</th>
-									<th>Morning</th>
+									<th>Tarde</th>
+									<th>Madrugada</th>
 									<th>GMP 2</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr>
-									<td>N° Sample</td>
+									<td>N° Muestra</td>
 									<td><input type="text" bind:value={formData.sampleNumber.evening} /></td>
 									<td><input type="text" bind:value={formData.sampleNumber.earlyMorning} /></td>
 									<td><input type="text" bind:value={formData.sampleNumber.gmp2} /></td>
 								</tr>
 								<tr>
-									<td>Sample Hour</td>
+									<td>Hora de muestreo</td>
 									<td><input type="time" bind:value={formData.samplingTime.evening} /></td>
 									<td><input type="time" bind:value={formData.samplingTime.earlyMorning} /></td>
 									<td><input type="time" bind:value={formData.samplingTime.gmp2} /></td>
 								</tr>
 								<tr>
-									<td>Sample Temperature °C</td>
+									<td>temperatura de muestra °C</td>
 									<td
 										><input
 											type="number"
@@ -316,23 +387,23 @@
 					</div>
 
 					<div class="section">
-						<h2>Physicochemical Information</h2>
+						<h2>informacion fisicoquimica</h2>
 						<table class="results-table">
 							<thead>
 								<tr>
-									<th>Parameter</th>
-									<th>Unit</th>
-									<th>Afternoon</th>
-									<th>Morning</th>
-									<th>GMP 2</th>
-									<th>Range</th>
-									<th>Test Method</th>
+									<th>Parametro</th>
+								<th>Unidad</th>
+								<th>Tarde</th>
+								<th>Madrugada</th>
+								<th>GMP 2</th>
+								<th>Rango</th>
+								<th>Metodo de ensayo</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr>
 									<td>pH at 20°C</td>
-									<td>pH Unity</td>
+									<td>Unidad pH</td>
 									<td><input type="number" step="0.01" bind:value={formData.ph20C.evening} /></td>
 									<td
 										><input
@@ -343,10 +414,10 @@
 									>
 									<td><input type="number" step="0.01" bind:value={formData.ph20C.gmp2} /></td>
 									<td>6.60 to 6.80</td>
-									<td>Potentiometric</td>
+									<td>Potentiometro</td>
 								</tr>
 								<tr>
-									<td>Temperature</td>
+									<td>Temperatura</td>
 									<td>°C</td>
 									<td
 										><input
@@ -365,11 +436,11 @@
 									<td><input type="number" step="0.01" bind:value={formData.temperature.gmp2} /></td
 									>
 									<td>15 to 25</td>
-									<td>Thermometer</td>
+									<td>Ternometro</td>
 								</tr>
 								<tr>
-									<td>Titratable Acidity</td>
-									<td>% Lactic Acid</td>
+									<td>Acidez titulable</td>
+									<td>%acido lactico</td>
 									<td
 										><input
 											type="number"
@@ -392,10 +463,10 @@
 										/></td
 									>
 									<td>0.13 to 0.18</td>
-									<td>Volumetric Method</td>
+									<td>metodo volumetrico</td>
 								</tr>
 								<tr>
-									<td>Density at 20°C</td>
+									<td>Densidad a 20°C</td>
 									<td>g/cm³</td>
 									<td
 										><input
@@ -414,10 +485,10 @@
 									<td><input type="number" step="0.001" bind:value={formData.density20C.gmp2} /></td
 									>
 									<td>1.028 to 1.034</td>
-									<td>Lactodensimeter</td>
+									<td>Lactodensímetro</td>
 								</tr>
 								<tr>
-									<td>Fat Matter</td>
+									<td>Materia grasa</td>
 									<td>%</td>
 									<td
 										><input
@@ -435,10 +506,10 @@
 									>
 									<td><input type="number" step="0.01" bind:value={formData.fatContent.gmp2} /></td>
 									<td>Min. 3.00</td>
-									<td>Gerber Method</td>
+									<td>Método Gerber</td>
 								</tr>
 								<tr>
-									<td>Non-Fat Solids</td>
+									<td>S.N.G</td>
 									<td>%</td>
 									<td
 										><input
@@ -458,38 +529,38 @@
 										><input type="number" step="0.01" bind:value={formData.nonFatSolids.gmp2} /></td
 									>
 									<td>Min. 8.2</td>
-									<td>Bucziki's Lactometer</td>
+									<td>Lactómetro de Bertuzzi</td>
 								</tr>
 								<tr>
-									<td>Alcoholimetry</td>
+									<td>Alcoholimetría</td>
 									<td>-</td>
 									<td><input type="text" bind:value={formData.alcoholTest.evening} /></td>
 									<td><input type="text" bind:value={formData.alcoholTest.earlyMorning} /></td>
 									<td><input type="text" bind:value={formData.alcoholTest.gmp2} /></td>
-									<td>Negative</td>
-									<td>Alcohol Test to 79%</td>
+									<td>Negativo</td>
+									<td>Prueba de Alcohol al 78%</td>
 								</tr>
 							</tbody>
 						</table>
 					</div>
 
 					<div class="section">
-						<h2>Microbiological Information</h2>
+						<h2>Informacion Microbiologica</h2>
 						<table class="results-table">
 							<thead>
 								<tr>
-									<th>Parameter</th>
-									<th>Unit</th>
-									<th>Afternoon</th>
-									<th>Morning</th>
-									<th>GMP 2</th>
-									<th>Range</th>
-									<th>Test Method</th>
+									<th>Parametro</th>
+								<th>Unidad</th>
+								<th>Tarde</th>
+								<th>Madrugada</th>
+								<th>GMP 2</th>
+								<th>Rango</th>
+								<th>Metodo de ensayo</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr>
-									<td>TRAM (Methylene Reduction Time)</td>
+									<td>TRAM (Tiempo de reducción de azul de metileno)</td>
 									<td>h</td>
 									<td><input type="number" step="0.01" bind:value={formData.tram.evening} /></td>
 									<td
@@ -497,26 +568,27 @@
 									>
 									<td><input type="number" step="0.01" bind:value={formData.tram.gmp2} /></td>
 									<td>> 1h</td>
-									<td>Reductase Test</td>
+									<td> Prueba de reductasa</td>
 								</tr>
 							</tbody>
 						</table>
 					</div>
 
 					<div class="button-group">
-						<button type="submit">Save Report</button>
+						<button type="submit">Guardar reporte</button>
 						<button type="button" on:click={() => goto('/register/raw-milk')}
-							>Back to Register</button
+							>Regresar a Registro</button
 						>
+						<button type="button" on:click={deleteReport} class="delete-btn">Eliminar Reporte</button>
 					</div>
 				</form>
 			{:else}
-				<p>No report data available.</p>
+				<p>No se encontro el reporte.</p>
 			{/if}
 		</section>
 	</div>
 	<div slot="not_authed">
-		<p>Log in to join DiaryLab</p>
+		<p>Iniciar sesion para ingresar a DiaryLab</p>
 	</div>
 </AuthGuard>
 

@@ -35,7 +35,7 @@
 	let fatContentGmp2 = '';
 	let nonFatSolidsEvening = '';
 	let nonFatSolidsEarlyMorning = '';
-	let nonFatSolidsGmp2 = 8.6;
+	let nonFatSolidsGmp2 = '';
 	let alcoholTestEvening = '';
 	let alcoholTestEarlyMorning = '';
 	let alcoholTestGmp2 = '';
@@ -181,7 +181,7 @@
 						return saveForm(retryCount + 1);
 					} else {
 						console.warn('Token refresh failed on retry');
-						alert('Session expired. Redirecting to login...');
+						alert('Sesion expirada. Recargando la pagina...');
 						await Registry.auth.login({ redirectUri: window.location.href });
 						return;
 					}
@@ -245,7 +245,7 @@
 		}
 
 		console.log('Navigating to report with ID:', reportId, 'Token:', token);
-		goto(`/report/${reportId}`);
+		goto(`/reports-form/report-raw-milk/${reportId}`);
 
 	}
 </script>
@@ -253,45 +253,45 @@
 <AuthGuard manual={true} forceLogin={true}>
 	<div slot="authed" let:user>
 		<section class="form-section">
-			<h1>Raw milk analisis inform</h1>
+			<h1>Informe de leche cruda</h1>
 			<form on:submit|preventDefault={() => saveForm()}>
 				<div class="date-section">
 					<div class="form-row">
-						<label>Date:</label>
+						<label>Fecha:</label>
 						<input type="date" bind:value={date} />
 					</div>
 					<div class="form-row">
-						<label>Analisis date:</label>
+						<label>Fecha de analisis:</label>
 						<input type="date" bind:value={analysisDate} />
 					</div>
 				</div>
 
 				<div class="section">
-					<h2>General information</h2>
+					<h2>Information General</h2>
 					<table class="info-general-table">
 						<thead>
 							<tr>
 								<th></th>
-								<th>Afternoon</th>
-								<th>Morning</th>
+								<th>Tarde</th>
+								<th>Madrugada</th>
 								<th>GMP 2</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td>N° Sample</td>
+								<td>N° Muestra</td>
 								<td><input type="text" bind:value={sampleNumberEvening} /></td>
 								<td><input type="text" bind:value={sampleNumberEarlyMorning} /></td>
 								<td><input type="text" bind:value={sampleNumberGmp2} /></td>
 							</tr>
 							<tr>
-								<td>Sample hour</td>
+								<td>hora de muestreo</td>
 								<td><input type="time" bind:value={samplingTimeEvening} /></td>
 								<td><input type="time" bind:value={samplingTimeEarlyMorning} /></td>
 								<td><input type="time" bind:value={samplingTimeGmp2} /></td>
 							</tr>
 							<tr>
-								<td>Sample Temperature °C</td>
+								<td>temperatura °C</td>
 								<td><input type="number" step="0.1" bind:value={samplingTemperatureEvening} /></td>
 								<td><input type="number" step="0.1" bind:value={samplingTemperatureEarlyMorning} /></td>
 								<td><input type="number" step="0.1" bind:value={samplingTemperatureGmp2} /></td>
@@ -301,41 +301,41 @@
 				</div>
 
 				<div class="section">
-					<h2>Physicochemical information</h2>
+					<h2>informacion Fisicoquimica</h2>
 					<table class="results-table">
 						<thead>
 							<tr>
-								<th>Parameter</th>
-								<th>Unit</th>
-								<th>Afternoon</th>
-								<th>Morning</th>
+								<th>Parametro</th>
+								<th>Unidad</th>
+								<th>Tarde</th>
+								<th>Madrugada</th>
 								<th>GMP 2</th>
-								<th>Range</th>
-								<th>Test method</th>
+								<th>Rango</th>
+								<th>Metodo de ensayo</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
 								<td>pH a 20°C</td>
-								<td>pH Unity</td>
+								<td>Unidad pH</td>
 								<td><input type="number" step="0.01" bind:value={ph20CEvening} /></td>
 								<td><input type="number" step="0.01" bind:value={ph20CEarlyMorning} /></td>
 								<td><input type="number" step="0.01" bind:value={ph20CGmp2} /></td>
 								<td>6.60 a 6.80</td>
-								<td>Potentiometric</td>
+								<td>Potentiometro</td>
 							</tr>
 							<tr>
-								<td>Temperature</td>
+								<td>Temperatura</td>
 								<td>°C</td>
 								<td><input type="number" step="0.1" bind:value={temperatureEvening} /></td>
 								<td><input type="number" step="0.1" bind:value={temperatureEarlyMorning} /></td>
 								<td><input type="number" step="0.1" bind:value={temperatureGmp2} /></td>
 								<td>15 a 25</td>
-								<td>Thermometer</td>
+								<td>Ternometro</td>
 							</tr>
 							<tr>
-								<td>Titratable acidity</td>
-								<td>%Lactic acid</td>
+								<td>Acidez titulable</td>
+								<td>%acido lactico</td>
 								<td><input type="number" step="0.01" bind:value={titratableAcidityEvening} /></td>
 								<td
 									><input
@@ -346,85 +346,85 @@
 								>
 								<td><input type="number" step="0.01" bind:value={titratableAcidityGmp2} /></td>
 								<td>0.13 a 0.18</td>
-								<td>Volumetric method</td>
+								<td>metodo volumetrico</td>
 							</tr>
 							<tr>
-								<td>Densidity to 20°C</td>
+								<td>Densidad a 20°C</td>
 								<td>g/cm³</td>
 								<td><input type="number" step="0.001" bind:value={density20CEvening} /></td>
 								<td><input type="number" step="0.001" bind:value={density20CEarlyMorning} /></td>
 								<td><input type="number" step="0.001" bind:value={density20CGmp2} /></td>
 								<td>1.028 a 1.034</td>
-								<td>Lactodensimeter</td>
+								<td>Lactodensímetro</td>
 							</tr>
 							<tr>
-								<td>Fat matter</td>
+								<td>Materia grasa</td>
 								<td>%</td>
 								<td><input type="number" step="0.1" bind:value={fatContentEvening} /></td>
 								<td><input type="number" step="0.1" bind:value={fatContentEarlyMorning} /></td>
 								<td><input type="number" step="0.1" bind:value={fatContentGmp2} /></td>
 								<td>Min. 3.00</td>
-								<td>Gerbe Method</td>
+								<td> Método Gerber</td>
 							</tr>
 							<tr>
-								<td>Non-Fat solids</td>
+								<td>S.N.G</td>
 								<td>%</td>
 								<td><input type="number" step="0.1" bind:value={nonFatSolidsEvening} /></td>
 								<td><input type="number" step="0.1" bind:value={nonFatSolidsEarlyMorning} /></td>
 								<td><input type="number" step="0.1" bind:value={nonFatSolidsGmp2} /></td>
 								<td>Min. 8.2</td>
-								<td>Bucziki's lactometer</td>
+								<td>Lactómetro de Bertuzzi</td>
 							</tr>
 							<tr>
-								<td>Alcoholimetry</td>
+								<td>Alcoholimetría</td>
 								<td>-</td>
 								<td><input type="text" bind:value={alcoholTestEvening} /></td>
 								<td><input type="text" bind:value={alcoholTestEarlyMorning} /></td>
 								<td><input type="text" bind:value={alcoholTestGmp2} /></td>
-								<td>Negative</td>
-								<td>Alcohol Test to 79%</td>
+								<td>Negativo</td>
+								<td>Prueba de Alcohol al 78%</td>
 							</tr>
 						</tbody>
 					</table>
 				</div>
 
 				<div class="section">
-					<h2>Microbiologic information</h2>
+					<h2>Informacion Microbiologica</h2>
 					<table class="results-table">
 						<thead>
 							<tr>
-								<th>Parameter</th>
-								<th>Unit</th>
-								<th>Afternoon</th>
-								<th>Morning</th>
+								<th>Parametro</th>
+								<th>Unidad</th>
+								<th>Tarde</th>
+								<th>Madrugada</th>
 								<th>GMP 2</th>
-								<th>Range</th>
-								<th>Test method</th>
+								<th>Rango</th>
+								<th>Metodo de ensayo</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
-								<td>TRAM (Methylene reduction time)</td>
+								<td>TRAM (Tiempo de reducción de azul de metileno)</td>
 								<td>h</td>
 								<td><input type="text" bind:value={tramEvening} /></td>
 								<td><input type="text" bind:value={tramEarlyMorning} /></td>
 								<td><input type="text" bind:value={tramGmp2} /></td>
 								<td>> 1h</td>
-								<td>Reductase test</td>
+								<td>Prueba de reductasa</td>
 							</tr>
 						</tbody>
 					</table>
 				</div>
 
 				<div class="form-actions">
-					<button type="submit">Save</button>
+					<button type="submit">Guardar</button>
 				</div>
 			</form>
             <div class="mt-6">
-                <h2 class="text-xl font-semibold mb-2">View Historical Reports</h2>
+                <h2 class="text-xl font-semibold mb-2">Ver reporte historico</h2>
                 <div class="flex gap-4 mb-4">
                   <div>
-                    <label for="startDate" class="block text-lg font-medium">Start Date:</label>
+                    <label for="startDate" class="block text-lg font-medium">Fecha inicial:</label>
                     <input
                       type="date"
                       id="startDate"
@@ -434,7 +434,7 @@
                     />
                   </div>
                   <div>
-                    <label for="endDate" class="block text-lg font-medium">End Date:</label>
+                    <label for="endDate" class="block text-lg font-medium">Fecha final:</label>
                     <input
                       type="date"
                       id="endDate"
@@ -450,23 +450,23 @@
                 {:else if error}
                   <p class="text-red-600">{error}</p>
                 {:else if reports.length === 0}
-                  <p>No reports found for the selected date range.</p>
+                  <p>No se encontraron reportes en el rango de fechas</p>
                 {:else}
                   <table class="w-full border-collapse">
                     <thead>
                       <tr>
-                        <th class="border p-2">Sample Number</th>
-                        <th class="border p-2">Date</th>
-                        <th class="border p-2">User</th>
-                        <th class="border p-2">Action</th>
+                        <th class="border p-2">N de muestra</th>
+                        <th class="border p-2">Fecha</th>
+                        <th class="border p-2">Usuario</th>
+                        <th class="border p-2">Accion</th>
                       </tr>
                     </thead>
                     <tbody>
                       {#each reports as report}
                         <tr>
                           <td class="border p-2">
-                            {#if report.sampleNumber.evening}Evening: {report.sampleNumber.evening}{/if}
-                            {#if report.sampleNumber.earlyMorning}<br>Morning: {report.sampleNumber.earlyMorning}{/if}
+                            {#if report.sampleNumber.evening}Tarde: {report.sampleNumber.evening}{/if}
+                            {#if report.sampleNumber.earlyMorning}<br>Madrugada: {report.sampleNumber.earlyMorning}{/if}
                             {#if report.sampleNumber.gmp2}<br>GMP 2: {report.sampleNumber.gmp2}{/if}
                           </td>
                           <td class="border p-2">{report.date}</td>
@@ -476,7 +476,7 @@
                               on:click={() => viewReport(report.id)}
                               class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                             >
-                              View
+                              Ver
                             </button>
                           </td>
                         </tr>
@@ -489,7 +489,7 @@
 	</div>
 
 	<div slot="not_authed">
-		<p>Log in for join to DiaryLab</p>
+		<p>Iniciar sesion para ingresar a DiaryLab</p>
 	</div>
 </AuthGuard>
 

@@ -116,11 +116,11 @@
 </script>
   
 <div class="container mx-auto p-6">
-  <h1 class="text-3xl font-bold mb-4">Upload Raw Milk Data</h1>
-  <p class="mb-4">Upload a .CSV file from Excel format</p>
+  <h1 class="text-3xl font-bold mb-4">Subir Archivo - Leche cruda</h1>
+  <p class="mb-4">Subir un archivo en formato .CSV</p>
   <form on:submit|preventDefault={handleSubmit} class="space-y-4">
     <div>
-      <label for="csvFile" class="block text-lg font-medium">Select .csv File:</label>
+      <label for="csvFile" class="block text-lg font-medium">Seleccionar un archivo .CSV</label>
       <input
         type="file"
         id="csvFile"
@@ -133,7 +133,7 @@
       type="submit"
       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
     >
-      Upload File
+      Subir Archivo
     </button>
   </form>
   {#if message}
@@ -156,12 +156,12 @@
     />
   </div>
   <div class="mt-6">
-    <h2 class="text-xl font-semibold mb-2">Steps to Upload Your CSV File</h2>
+    <h2 class="text-xl font-semibold mb-2">Pasos para subir un archivo CSV</h2>
     <ul class="list-disc list-inside space-y-2 text-gray-700">
-      <li>Prepare your Excel file with the required columns as the top left image.</li>
-      <li>Save as .csv file, have to be as the top right image</li>
-      <li>Click "Choose file" button and choose your .csv formated file from your device.</li>
-      <li>Click "Upload File" to submit the CSV for processing.</li>
+       <li>Tener preparado el archivo Excel a subir con las columnas requeridas como en la imagen de la izquierda</li>
+      <li>Guardar el archivo en formato .CSV, como en la imagen de arriba derecha</li>
+      <li>Click en el boton "Choose file" y subir el archivo .CSV anteriormente</li>
+      <li>Click en el boton "Subir Archivo" para procesar el archivo</li>
     </ul>
   </div>
 

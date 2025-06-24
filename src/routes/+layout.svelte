@@ -37,25 +37,25 @@
         <div class="nav-links">
             <div class="dropdown">
                 <button class="menu-btn" on:click={menuRegisterOption}>
-                    Register <span class="arrow">▼</span>
+                    Registro <span class="arrow">▼</span>
                 </button>
                 {#if isRegisterMenuOpen}
                     <ul class="dropdown-menu">
-                        <li><a href="/register/raw-milk" on:click={menuRegisterOption}>Raw Milk</a></li>
-                        <li><a href="/register/yogurt-probiotic-flavored" on:click={menuRegisterOption}>Yogurt Probiotic</a></li>
-                        <li><a href="/register/yogurt-no-sugar" on:click={menuRegisterOption}>Yogurt no Sugar</a></li>
-                        <li><a href="/register/yogurt-fruity" on:click={menuRegisterOption}>Yogurt Fruity</a></li>
-                        <li><a href="/register/semi-ripe-cheese" on:click={menuRegisterOption}>Semi-ripe Cheese</a></li>
-                        <li><a href="/register/butter" on:click={menuRegisterOption}>Butter</a></li>
+                        <li><a href="/register/raw-milk" on:click={menuRegisterOption}>Leche Cruda</a></li>
+                        <li><a href="/register/yogurt-probiotic-flavored" on:click={menuRegisterOption}>Yogurt probiotico</a></li>
+                        <li><a href="/register/yogurt-no-sugar" on:click={menuRegisterOption}>Yogurt sin azucar</a></li>
+                        <li><a href="/register/yogurt-fruity" on:click={menuRegisterOption}>Yogurt frutado</a></li>
+                        <li><a href="/register/semi-ripe-cheese" on:click={menuRegisterOption}>Queso semimaduro</a></li>
+                        <li><a href="/register/butter" on:click={menuRegisterOption}>Mantequilla</a></li>
                     </ul>
                 {/if}
             </div>
-            <a href="/import-file" class="nav-link-1">import File</a>
-            <a href="/evaluation" class="nav-link-2">Evaluation</a>
-            <a href="/reports-samples" class="nav-link-3">Samples report</a>
-            <a href="/reports-prediction" class="nav-link-4">Prediction Report</a>
+            <a href="/import-file" class="nav-link-1">Importar Archivo</a>
+            <a href="/evaluation" class="nav-link-2">Evaluacion</a>
+            <a href="/reports-samples" class="nav-link-3">Reporte de Muestras</a>
+            <a href="/reports-prediction" class="nav-link-4">Reporte de prediccion</a>
         </div>
-        <button class="logout-btn" on:click={logout}>Log out</button>
+        <button class="logout-btn" on:click={logout}>Cerrar Sesion</button>
     </div>
 </nav>
 
