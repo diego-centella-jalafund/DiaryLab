@@ -40,104 +40,57 @@
 	let coldChamberTemperature3 = '';
 	let samplingTime3 = '';
 	let netContent3 = '';
-	let sampleNumber4 = '';
-	let lot4 = '';
-	let flavor4 = '';
-	let productionDate4 = '';
-	let expirationDate4 = '';
-	let productionTemperature4 = '';
-	let coldChamberTemperature4 = '';
-	let samplingTime4 = '';
-	let netContent4 = '';
-	let sampleNumber5 = '';
-	let lot5 = '';
-	let flavor5 = '';
-	let productionDate5 = '';
-	let expirationDate5 = '';
-	let productionTemperature5 = '';
-	let coldChamberTemperature5 = '';
-	let samplingTime5 = '';
-	let netContent5 = '';
 	let fatContentM1 = '';
 	let fatContentM2 = '';
 	let fatContentM3 = '';
-	let fatContentM4 = '';
-	let fatContentM5 = '';
 	let fatContentObservation = '';
 	let sngM1 = '';
 	let sngM2 = '';
 	let sngM3 = '';
-	let sngM4 = '';
-	let sngM5 = '';
 	let sngObservation = '';
 	let titratableAcidityM1 = '';
 	let titratableAcidityM2 = '';
 	let titratableAcidityM3 = '';
-	let titratableAcidityM4 = '';
-	let titratableAcidityM5 = '';
 	let titratableAcidityObservation = '';
 	let phM1 = '';
 	let phM2 = '';
 	let phM3 = '';
-	let phM4 = '';
-	let phM5 = '';
 	let phObservation = '';
 	let phTemperatureM1 = '';
 	let phTemperatureM2 = '';
 	let phTemperatureM3 = '';
-	let phTemperatureM4 = '';
-	let phTemperatureM5 = '';
 	let phTemperatureObservation = '';
 	let colorM1 = '';
 	let colorM2 = '';
 	let colorM3 = '';
-	let colorM4 = '';
-	let colorM5 = '';
 	let colorObservation = '';
 	let smellM1 = '';
 	let smellM2 = '';
 	let smellM3 = '';
-	let smellM4 = '';
-	let smellM5 = '';
 	let smellObservation = '';
 	let tasteM1 = '';
 	let tasteM2 = '';
 	let tasteM3 = '';
-	let tasteM4 = '';
-	let tasteM5 = '';
 	let tasteObservation = '';
 	let appearanceM1 = '';
 	let appearanceM2 = '';
 	let appearanceM3 = '';
-	let appearanceM4 = '';
-	let appearanceM5 = '';
 	let appearanceObservation = '';
 	let probioticCountM1 = '';
 	let probioticCountM2 = '';
 	let probioticCountM3 = '';
-	let probioticCountM4 = '';
-	let probioticCountM5 = '';
-	let probioticCountObservation = '';
 	let coliformCountM1 = '';
 	let coliformCountM2 = '';
 	let coliformCountM3 = '';
-	let coliformCountM4 = '';
-	let coliformCountM5 = '';
 	let fecalColiformCountM1 = '';
 	let fecalColiformCountM2 = '';
 	let fecalColiformCountM3 = '';
-	let fecalColiformCountM4 = '';
-	let fecalColiformCountM5 = '';
 	let eColiPresenceM1 = '';
 	let eColiPresenceM2 = '';
 	let eColiPresenceM3 = '';
-	let eColiPresenceM4 = '';
-	let eColiPresenceM5 = '';
 	let moldYeastCountM1 = '';
 	let moldYeastCountM2 = '';
 	let moldYeastCountM3 = '';
-	let moldYeastCountM4 = '';
-	let moldYeastCountM5 = '';
 	let analysisTime = '';
 
 	let startDate: string = '2025-01-01';
@@ -192,104 +145,57 @@
 			coldChamberTemperature3,
 			samplingTime3,
 			netContent3,
-			sampleNumber4,
-			lot4,
-			flavor4,
-			productionDate4,
-			expirationDate4,
-			productionTemperature4,
-			coldChamberTemperature4,
-			samplingTime4,
-			netContent4,
-			sampleNumber5,
-			lot5,
-			flavor5,
-			productionDate5,
-			expirationDate5,
-			productionTemperature5,
-			coldChamberTemperature5,
-			samplingTime5,
-			netContent5,
 			fatContentM1,
 			fatContentM2,
 			fatContentM3,
-			fatContentM4,
-			fatContentM5,
 			fatContentObservation,
 			sngM1,
 			sngM2,
 			sngM3,
-			sngM4,
-			sngM5,
 			sngObservation,
 			titratableAcidityM1,
 			titratableAcidityM2,
 			titratableAcidityM3,
-			titratableAcidityM4,
-			titratableAcidityM5,
 			titratableAcidityObservation,
 			phM1,
 			phM2,
 			phM3,
-			phM4,
-			phM5,
 			phObservation,
 			phTemperatureM1,
 			phTemperatureM2,
 			phTemperatureM3,
-			phTemperatureM4,
-			phTemperatureM5,
 			phTemperatureObservation,
 			colorM1,
 			colorM2,
 			colorM3,
-			colorM4,
-			colorM5,
 			colorObservation,
 			smellM1,
 			smellM2,
 			smellM3,
-			smellM4,
-			smellM5,
 			smellObservation,
 			tasteM1,
 			tasteM2,
 			tasteM3,
-			tasteM4,
-			tasteM5,
 			tasteObservation,
 			appearanceM1,
 			appearanceM2,
 			appearanceM3,
-			appearanceM4,
-			appearanceM5,
 			appearanceObservation,
 			probioticCountM1,
 			probioticCountM2,
 			probioticCountM3,
-			probioticCountM4,
-			probioticCountM5,
-			probioticCountObservation,
 			coliformCountM1,
 			coliformCountM2,
 			coliformCountM3,
-			coliformCountM4,
-			coliformCountM5,
 			fecalColiformCountM1,
 			fecalColiformCountM2,
 			fecalColiformCountM3,
-			fecalColiformCountM4,
-			fecalColiformCountM5,
 			eColiPresenceM1,
 			eColiPresenceM2,
 			eColiPresenceM3,
-			eColiPresenceM4,
-			eColiPresenceM5,
 			moldYeastCountM1,
 			moldYeastCountM2,
 			moldYeastCountM3,
-			moldYeastCountM4,
-			moldYeastCountM5,
 			analysisTime
 		};
 		let token = Registry.auth.getToken();
@@ -480,28 +386,6 @@
 								<td><input type="time" bind:value={samplingTime3} /></td>
 								<td><input type="number" step="0.1" bind:value={netContent3} /></td>
 							</tr>
-							<tr>
-								<td><input type="text" bind:value={sampleNumber4} /></td>
-								<td><input type="text" bind:value={lot4} /></td>
-								<td><input type="text" bind:value={flavor4} /></td>
-								<td><input type="date" bind:value={productionDate4} /></td>
-								<td><input type="date" bind:value={expirationDate4} /></td>
-								<td><input type="number" step="0.1" bind:value={productionTemperature4} /></td>
-								<td><input type="number" step="0.1" bind:value={coldChamberTemperature4} /></td>
-								<td><input type="time" bind:value={samplingTime4} /></td>
-								<td><input type="number" step="0.1" bind:value={netContent4} /></td>
-							</tr>
-							<tr>
-								<td><input type="text" bind:value={sampleNumber5} /></td>
-								<td><input type="text" bind:value={lot5} /></td>
-								<td><input type="text" bind:value={flavor5} /></td>
-								<td><input type="date" bind:value={productionDate5} /></td>
-								<td><input type="date" bind:value={expirationDate5} /></td>
-								<td><input type="number" step="0.1" bind:value={productionTemperature5} /></td>
-								<td><input type="number" step="0.1" bind:value={coldChamberTemperature5} /></td>
-								<td><input type="time" bind:value={samplingTime5} /></td>
-								<td><input type="number" step="0.1" bind:value={netContent5} /></td>
-							</tr>
 						</tbody>
 					</table>
 				</div>
@@ -516,8 +400,6 @@
 								<th>M1:</th>
 								<th>M2:</th>
 								<th>M3:</th>
-								<th>M4:</th>
-								<th>M5:</th>
 								<th>Rango de aceptacion</th>
 								<th>Observaciones</th>
 							</tr>
@@ -529,8 +411,6 @@
 								<td><input type="number" step="0.1" bind:value={fatContentM1} /></td>
 								<td><input type="number" step="0.1" bind:value={fatContentM2} /></td>
 								<td><input type="number" step="0.1" bind:value={fatContentM3} /></td>
-								<td><input type="number" step="0.1" bind:value={fatContentM4} /></td>
-								<td><input type="number" step="0.1" bind:value={fatContentM5} /></td>
 								<td>min 2.5</td>
 								<td><input type="text" bind:value={fatContentObservation} /></td>
 							</tr>
@@ -540,8 +420,6 @@
 								<td><input type="number" step="0.1" bind:value={sngM1} /></td>
 								<td><input type="number" step="0.1" bind:value={sngM2} /></td>
 								<td><input type="number" step="0.1" bind:value={sngM3} /></td>
-								<td><input type="number" step="0.1" bind:value={sngM4} /></td>
-								<td><input type="number" step="0.1" bind:value={sngM5} /></td>
 								<td>8.0 - 14.0</td>
 								<td><input type="text" bind:value={sngObservation} /></td>
 							</tr>
@@ -551,8 +429,6 @@
 								<td><input type="number" step="0.01" bind:value={titratableAcidityM1} /></td>
 								<td><input type="number" step="0.01" bind:value={titratableAcidityM2} /></td>
 								<td><input type="number" step="0.01" bind:value={titratableAcidityM3} /></td>
-								<td><input type="number" step="0.01" bind:value={titratableAcidityM4} /></td>
-								<td><input type="number" step="0.01" bind:value={titratableAcidityM5} /></td>
 								<td>0.6 - 1.5</td>
 								<td><input type="text" bind:value={titratableAcidityObservation} /></td>
 							</tr>
@@ -562,8 +438,6 @@
 								<td><input type="number" step="0.01" bind:value={phM1} /></td>
 								<td><input type="number" step="0.01" bind:value={phM2} /></td>
 								<td><input type="number" step="0.01" bind:value={phM3} /></td>
-								<td><input type="number" step="0.01" bind:value={phM4} /></td>
-								<td><input type="number" step="0.01" bind:value={phM5} /></td>
 								<td>4.00 - 4.60</td>
 								<td><input type="text" bind:value={phObservation} /></td>
 							</tr>
@@ -573,8 +447,7 @@
 								<td><input type="number" step="0.1" bind:value={phTemperatureM1} /></td>
 								<td><input type="number" step="0.1" bind:value={phTemperatureM2} /></td>
 								<td><input type="number" step="0.1" bind:value={phTemperatureM3} /></td>
-								<td><input type="number" step="0.1" bind:value={phTemperatureM4} /></td>
-								<td><input type="number" step="0.1" bind:value={phTemperatureM5} /></td>
+
 								<td>25°C</td>
 								<td><input type="text" bind:value={phTemperatureObservation} /></td>
 							</tr>
@@ -592,8 +465,6 @@
 								<th>M1:</th>
 								<th>M2:</th>
 								<th>M3:</th>
-								<th>M4:</th>
-								<th>M5:</th>
 								<th>Observaciones</th>
 							</tr>
 						</thead>
@@ -604,8 +475,7 @@
 								<td><input type="text" bind:value={colorM1} /></td>
 								<td><input type="text" bind:value={colorM2} /></td>
 								<td><input type="text" bind:value={colorM3} /></td>
-								<td><input type="text" bind:value={colorM4} /></td>
-								<td><input type="text" bind:value={colorM5} /></td>
+
 								<td><input type="text" bind:value={colorObservation} /></td>
 							</tr>
 							<tr>
@@ -614,8 +484,6 @@
 								<td><input type="text" bind:value={smellM1} /></td>
 								<td><input type="text" bind:value={smellM2} /></td>
 								<td><input type="text" bind:value={smellM3} /></td>
-								<td><input type="text" bind:value={smellM4} /></td>
-								<td><input type="text" bind:value={smellM5} /></td>
 								<td><input type="text" bind:value={smellObservation} /></td>
 							</tr>
 							<tr>
@@ -624,8 +492,6 @@
 								<td><input type="text" bind:value={tasteM1} /></td>
 								<td><input type="text" bind:value={tasteM2} /></td>
 								<td><input type="text" bind:value={tasteM3} /></td>
-								<td><input type="text" bind:value={tasteM4} /></td>
-								<td><input type="text" bind:value={tasteM5} /></td>
 								<td><input type="text" bind:value={tasteObservation} /></td>
 							</tr>
 							<tr>
@@ -634,8 +500,6 @@
 								<td><input type="text" bind:value={appearanceM1} /></td>
 								<td><input type="text" bind:value={appearanceM2} /></td>
 								<td><input type="text" bind:value={appearanceM3} /></td>
-								<td><input type="text" bind:value={appearanceM4} /></td>
-								<td><input type="text" bind:value={appearanceM5} /></td>
 								<td><input type="text" bind:value={appearanceObservation} /></td>
 							</tr>
 						</tbody>
@@ -653,8 +517,6 @@
 								<th>M1:</th>
 								<th>M2:</th>
 								<th>M3:</th>
-								<th>M4:</th>
-								<th>M5:</th>
 								<th>Criterio de aceptacion</th>
 							</tr>
 						</thead>
@@ -666,8 +528,6 @@
 								<td><input type="number" bind:value={probioticCountM1} /></td>
 								<td><input type="number" bind:value={probioticCountM2} /></td>
 								<td><input type="number" bind:value={probioticCountM3} /></td>
-								<td><input type="number" bind:value={probioticCountM4} /></td>
-								<td><input type="number" bind:value={probioticCountM5} /></td>
 								<td>min 10^6</td>
 							</tr>
 							<tr>
@@ -677,8 +537,6 @@
 								<td><input type="number" bind:value={coliformCountM1} /></td>
 								<td><input type="number" bind:value={coliformCountM2} /></td>
 								<td><input type="number" bind:value={coliformCountM3} /></td>
-								<td><input type="number" bind:value={coliformCountM4} /></td>
-								<td><input type="number" bind:value={coliformCountM5} /></td>
 								<td>n=5, m=10, M=100, c=2</td>
 							</tr>
 							<tr>
@@ -687,8 +545,6 @@
 								<td><input type="number" bind:value={fecalColiformCountM1} /></td>
 								<td><input type="number" bind:value={fecalColiformCountM2} /></td>
 								<td><input type="number" bind:value={fecalColiformCountM3} /></td>
-								<td><input type="number" bind:value={fecalColiformCountM4} /></td>
-								<td><input type="number" bind:value={fecalColiformCountM5} /></td>
 								<td>n=5, m=0, M=0, c=0</td>
 							</tr>
 							<tr>
@@ -697,8 +553,7 @@
 								<td><input type="text" bind:value={eColiPresenceM1} /></td>
 								<td><input type="text" bind:value={eColiPresenceM2} /></td>
 								<td><input type="text" bind:value={eColiPresenceM3} /></td>
-								<td><input type="text" bind:value={eColiPresenceM4} /></td>
-								<td><input type="text" bind:value={eColiPresenceM5} /></td>
+
 								<td>ausencia</td>
 							</tr>
 							<tr>
@@ -707,8 +562,6 @@
 								<td><input type="number" bind:value={moldYeastCountM1} /></td>
 								<td><input type="number" bind:value={moldYeastCountM2} /></td>
 								<td><input type="number" bind:value={moldYeastCountM3} /></td>
-								<td><input type="number" bind:value={moldYeastCountM4} /></td>
-								<td><input type="number" bind:value={moldYeastCountM5} /></td>
 								<td>n=5, m=1, M=10, c=1</td>
 							</tr>
 						</tbody>
