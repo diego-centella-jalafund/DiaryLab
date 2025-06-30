@@ -12,7 +12,7 @@
     let user: User | null = null;
 
     let startDate: string = '2025-01-01';
-    let endDate: string = '2025-06-29'; // Current date
+    let endDate: string = '2025-06-29'; 
     let reports: any[] = [];
     let error: string | null = null;
     let loading: boolean = false;
