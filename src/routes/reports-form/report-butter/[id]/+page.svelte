@@ -3,22 +3,23 @@
     import { Auth } from '$lib/auth/Auth';
     import AuthGuard from '$lib/auth/AuthGuard.svelte';
     import type { User } from '$lib/auth/User';
-    import { Registry } from '$lib/auth/Registry';
     import { writable } from 'svelte/store';
     import { goto } from '$app/navigation';
 
-    export let data: { id: string };
+    export let data: any;
 
     let user: User | null = null;
-
-    let startDate: string = '2025-01-01';
-    let endDate: string = '2025-06-29'; // Current date
-    let reports: any[] = [];
-    let error: string | null = null;
-    let loading: boolean = false;
+    const report = writable<any>(null);
+    const error = writable<string | null>(null);
+    let errorMessage: string | null = null;
+    let authInstance: Auth | null = null;
+    let loginInitiated: boolean = false;
+    const loading = writable<boolean>(true);
 
     let date = '';
     let analysisDate = '';
+    let samplingTime = '';
+    let responsibleAnalyst = '';
     let sampleNumber = '';
     let productionLot = '';
     let productionDate = '';
@@ -35,182 +36,315 @@
     let odor = '';
     let taste = '';
     let texture = '';
-    let samplingTime = '';
-    let responsibleAnalyst = '';
     let bacteriologicalQuality = '';
     let totalMesophilicCount = '';
     let totalColiformCount = '';
     let moldYeastCount = '';
-    let escherichiaColi = false;
-    let salmonellaDetection = false;
+    let escherichiaColi = '';
+    let salmonellaDetection = '';
 
     onMount(async () => {
-        Registry.auth.checkParams();
-        Registry.auth.getUser().subscribe((data: User) => {
-            user = data;
-            if (user) {
-                console.log('Authenticated user:', user.userId);
-            } else {
-                console.log('No user authenticated, initiating login...');
-                Registry.auth.login({ redirectUri: window.location.href }).catch((error) => {
-                    console.error('Login initiation failed:', error);
-                });
-            }
+        const auth = new Auth({
+            url: 'http://localhost:8080',
+            realm: 'diarylab',
+            clientId: 'sveltekit'
         });
+
+        authInstance = auth;
+
+        try {
+            await auth.inBrowserInit();
+            await fetchReport();
+        } catch (error) {
+            errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            console.error('Error initializing authentication or fetching data:', error);
+        }
     });
 
-    async function saveForm(retryCount = 0) {
-        let token = Registry.auth.getToken();
-        if (!token) {
-            console.warn('No token found in localStorage, redirecting to login...');
-            alert('No authentication token available. Redirecting to login...');
-            await Registry.auth.login({ redirectUri: window.location.href });
+    function formatDateForInput(isoDate: string): string {
+        if (!isoDate) return '';
+        return new Date(isoDate).toISOString().split('T')[0];
+    }
+
+    function formatTimeForInput(timeStr: string): string {
+        if (!timeStr) return '';
+        const [hours, minutes] = timeStr.split(':');
+        return `${hours}:${minutes}`;
+    }
+
+    async function fetchReport(retryCount = 0) {
+        if (!authInstance) {
+            error.set('Authentication not initialized');
+            loading.set(false);
             return;
         }
 
-        console.log('Token before refresh:', token);
+        let token: string | null;
+        try {
+            const refreshed = await authInstance.refreshToken();
+            token = authInstance.getToken();
+            if (!refreshed && !token && retryCount === 0) {
+                if (!loginInitiated) {
+                    loginInitiated = true;
+                    await authInstance.login({ redirectUri: window.location.href });
+                }
+                return;
+            }
+        } catch (err) {
+            console.error('Token refresh error:', err);
+            error.set('Authentication error');
+            if (!loginInitiated) {
+                loginInitiated = true;
+                await authInstance.login({ redirectUri: window.location.href });
+            }
+            loading.set(false);
+            return;
+        }
+
+        if (!token) {
+            error.set('No authentication token');
+            if (!loginInitiated) {
+                loginInitiated = true;
+                await authInstance.login({ redirectUri: window.location.href });
+            }
+            loading.set(false);
+            return;
+        }
 
         try {
-            const refreshed = await Registry.auth.refreshToken();
-            if (!refreshed) {
-                console.warn('Token refresh failed, possibly due to expired refresh token');
-                if (retryCount < 1) {
-                    const refreshedAgain = await Registry.auth.refreshToken();
-                    if (refreshedAgain) {
-                        token = Registry.auth.getToken();
-                        console.log('Token after second refresh:', token);
+            const response = await fetch(`/api/butter/${data.id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                const result = await response.text();
+                if (response.status === 401 && retryCount < 1) {
+                    const refreshed = await authInstance.refreshToken();
+                    if (refreshed) {
+                        return fetchReport(retryCount + 1);
                     }
                 }
+                if (response.status === 404) {
+                    error.set('Report not found');
+                    return;
+                }
+                throw new Error(`Failed to fetch data: ${response.status} - ${result}`);
             }
-            token = Registry.auth.getToken();
-            if (!token) {
-                console.error('No token available after refresh attempt');
-                throw new Error('Failed to obtain token after refresh');
+
+            const result = await response.json();
+            report.set(result);
+            if (result) {
+                date = formatDateForInput(result.samplingDate || '');
+                analysisDate = formatDateForInput(result.analysisDate || '');
+                samplingTime = formatTimeForInput(result.samplingTime || '');
+                responsibleAnalyst = result.responsibleAnalyst || '';
+                sampleNumber = result.sampleNumber || '';
+                productionLot = result.production.batch || '';
+                productionDate = formatDateForInput(result.production.date || '');
+                expirationDate = formatDateForInput(result.production.expirationDate || '');
+                temperature = result.production.temperature || '';
+                coldChamber = result.production.coldChamberTemperature || '';
+                netContent = result.production.netContent || '';
+                fatContent = result.measurements.fatContent || '';
+                acidityPercent = result.measurements.acidityPercent || '';
+                phAcidity = result.measurements.phAcidity || '';
+                phTemperature = result.measurements.phTemperature || '';
+                meltingPoint = result.measurements.meltingPoint || '';
+                color = result.measurements.color || '';
+                odor = result.measurements.odor || '';
+                taste = result.measurements.flavor || '';
+                texture = result.measurements.texture || '';
+                bacteriologicalQuality = result.bacteriological.quality || '';
+                totalMesophilicCount = result.bacteriological.totalMesophilicCount || '';
+                totalColiformCount = result.bacteriological.totalColiformCount || '';
+                moldYeastCount = result.bacteriological.moldYeastCount || '';
+                escherichiaColi = result.bacteriological.escherichiaColi ? '1' : '0';
+                salmonellaDetection = result.bacteriological.salmonellaDetection ? '1' : '0';
             }
-            console.log('Token after refresh:', token);
-        } catch (error) {
-            console.error('Error during token refresh:', error.message || error);
-            alert('Authentication error: Redirecting to login...');
-            await Registry.auth.login({ redirectUri: window.location.href });
+        } catch (err) {
+            console.error('Fetch error:', err);
+            error.set(`Error fetching report: ${err.message}`);
+        } finally {
+            loading.set(false);
+        }
+    }
+
+    async function saveForm(retryCount = 0) {
+        if (!authInstance) {
+            console.warn('Authentication instance not initialized');
+            error.set('Authentication not initialized');
             return;
         }
+
+        let token = authInstance.getToken();
+        if (!token) {
+            console.warn('No token found, redirecting to login...');
+            alert('No authentication token available. Redirecting to login...');
+            await authInstance.login({ redirectUri: window.location.href });
+            return;
+        }
+
         try {
-            const response = await fetch('/api/butter', {
-                method: 'POST',
+            const refreshed = await authInstance.refreshToken();
+            if (!refreshed) {
+                if (retryCount < 1) {
+                    const refreshedAgain = await authInstance.refreshToken();
+                    if (refreshedAgain) {
+                        token = authInstance.getToken();
+                    }
+                } else {
+                    throw new Error('Token refresh failed after retry');
+                }
+            }
+            token = authInstance.getToken();
+            if (!token) {
+                throw new Error('Failed to obtain token after refresh');
+            }
+        } catch (error) {
+            console.error('Error during token refresh:', error.message || error);
+            alert('Authentication error. Redirecting to login...');
+            await authInstance.login({ redirectUri: window.location.href });
+            return;
+        }
+
+        const formData = {
+            date,
+            analysisDate,
+            samplingTime,
+            responsibleAnalyst,
+            sampleNumber,
+            productionLot,
+            productionDate,
+            expirationDate,
+            temperature: parseFloat(temperature) || 0,
+            coldChamber: parseFloat(coldChamber) || 0,
+            netContent: parseFloat(netContent) || 0,
+            fatContent: parseFloat(fatContent) || 0,
+            acidityPercent: parseFloat(acidityPercent) || 0,
+            phAcidity: parseFloat(phAcidity) || 0,
+            phTemperature: parseFloat(phTemperature) || 0,
+            meltingPoint: parseFloat(meltingPoint) || 0,
+            color,
+            odor,
+            taste,
+            texture,
+            bacteriologicalQuality,
+            totalMesophilicCount: parseFloat(totalMesophilicCount) || 0,
+            totalColiformCount: parseFloat(totalColiformCount) || 0,
+            moldYeastCount: parseFloat(moldYeastCount) || 0,
+            escherichiaColi: parseInt(escherichiaColi) || 0,
+            salmonellaDetection: parseInt(salmonellaDetection) || 0
+        };
+
+        try {
+            const response = await fetch(`/api/butter/${data.id}`, {
+                method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    date,
-                    analysisDate,
-                    samplingTime,
-                    responsibleAnalyst,
-                    sampleNumber,
-                    productionLot,
-                    productionDate,
-                    expirationDate,
-                    temperature,
-                    coldChamber,
-                    netContent,
-                    fatContent,
-                    acidityPercent,
-                    phAcidity,
-                    phTemperature,
-                    meltingPoint,
-                    color,
-                    odor,
-                    taste,
-                    texture,
-                    bacteriologicalQuality,
-                    totalMesophilicCount,
-                    totalColiformCount,
-                    moldYeastCount,
-                    escherichiaColi,
-                    salmonellaDetection
-                })
+                body: JSON.stringify(formData)
             });
 
             if (response.ok) {
                 const result = await response.json();
-                alert('Data uploaded successfully: ' + (result.id ? `ID ${result.id}` : ''));
+                console.log('Data updated successfully:', result);
+                alert(`Reporte actualizado con éxito!${result.data?.id ? ` ID ${result.data.id}` : ''}`);
+                await fetchReport();
             } else {
                 const result = await response.json();
-                console.error('API response:', result);
                 if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
-                    const refreshed = await Registry.auth.refreshToken();
+                    const refreshed = await authInstance.refreshToken();
                     if (refreshed) {
                         return saveForm(retryCount + 1);
-                    } else {
-                        console.warn('Token refresh failed on retry');
-                        alert('Session expired. Redirecting to login...');
-                        await Registry.auth.login({ redirectUri: window.location.href });
-                        return;
                     }
                 }
                 throw new Error(
-                    `Failed to upload data: ${response.status} - ${result.message || result.error || response.statusText}`
+                    `Fallo al actualizar datos: ${response.status} - ${result.message || result.error || response.statusText}`
                 );
             }
         } catch (err) {
             console.error('Save error:', err);
-            error = `Error saving analysis: ${err.message}`;
+            error.set(`Error al guardar reporte: ${err.message}`);
         }
     }
 
-    async function fetchReports() {
-        if (!user) return;
-
-        loading = true;
-        error = null;
-
-        let token = Registry.auth.getToken();
-        if (!token) {
-            error = 'No authentication token available.';
-            loading = false;
+    async function deleteReport(retryCount = 0) {
+        if (!authInstance) {
+            error.set('Authentication not initialized');
+            loading.set(false);
             return;
         }
+
+        let token: string | null;
         try {
-            const response = await fetch(`/api/butter?startDate=${startDate}&endDate=${endDate}`, {
-                method: 'GET',
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const result = await response.json();
-                reports = result.reports || [];
-            } else {
-                const result = await response.json();
-                error = result.error || 'Failed to fetch reports';
+            const refreshed = await authInstance.refreshToken();
+            token = authInstance.getToken();
+            if (!refreshed && !token && retryCount === 0) {
+                if (!loginInitiated) {
+                    loginInitiated = true;
+                    await authInstance.login({ redirectUri: window.location.href });
+                }
+                return;
             }
         } catch (err) {
-            error = `Error fetching reports: ${err.message}`;
-        } finally {
-            loading = false;
-        }
-    }
-
-    function viewReport(reportId: string) {
-        if (!reportId || isNaN(parseInt(reportId))) {
-            error = 'Invalid report ID';
+            console.error('Token refresh error:', err);
+            error.set('Authentication error');
+            if (!loginInitiated) {
+                loginInitiated = true;
+                await authInstance.login({ redirectUri: window.location.href });
+            }
+            loading.set(false);
             return;
         }
 
-        const token = Registry.auth.getToken();
         if (!token) {
-            error = 'No authentication token available.';
-            loading = false;
+            error.set('No authentication token');
+            if (!loginInitiated) {
+                loginInitiated = true;
+                await authInstance.login({ redirectUri: window.location.href });
+            }
+            loading.set(false);
             return;
         }
 
-        console.log('Navigating to report with ID:', reportId, 'Token:', token);
-        goto(`/reports-form/report-butter/${reportId}`);
+        try {
+            const response = await fetch(`/api/butter/${data.id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert('Reporte eliminado con éxito!');
+                goto('/register/butter');
+            } else {
+                const result = await response.json();
+                if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
+                    const refreshed = await authInstance.refreshToken();
+                    if (refreshed) {
+                        return deleteReport(retryCount + 1);
+                    }
+                }
+                throw new Error(
+                    `Fallo al eliminar el reporte: ${response.status} - ${result.message || result.error || response.statusText}`
+                );
+            }
+        } catch (err) {
+            console.error('Delete error:', err);
+            error.set(`Error al eliminar reporte: ${err.message}`);
+        } finally {
+            loading.set(false);
+        }
     }
 </script>
 
 <AuthGuard manual={true} forceLogin={true}>
     <div slot="authed" let:user>
         <section class="form-section">
-            <h1>Informe de Mantequilla</h1>
+            <h1>Informe de Mantequilla (ID: {data.id})</h1>
             <form on:submit|preventDefault={() => saveForm()}>
                 <div class="date-section">
                     <div class="form-row">
@@ -220,6 +354,18 @@
                     <div class="form-row">
                         <label>Fecha de análisis:</label>
                         <input type="date" bind:value={analysisDate} />
+                    </div>
+                    <div class="form-row">
+                        <label>Hora de muestreo:</label>
+                        <input type="time" bind:value={samplingTime} />
+                    </div>
+                    <div class="form-row">
+                        <label>Analista responsable:</label>
+                        <input type="text" bind:value={responsibleAnalyst} />
+                    </div>
+                    <div class="form-row">
+                        <label>N° de muestra:</label>
+                        <input type="text" bind:value={sampleNumber} />
                     </div>
                 </div>
 
@@ -377,14 +523,14 @@
                             <tr>
                                 <td>Presencia Escherichia coli</td>
                                 <td></td>
-                                <td><input type="checkbox" bind:checked={escherichiaColi} /></td>
+                                <td><input type="number" bind:value={escherichiaColi} /></td>
                                 <td>Ausencia</td>
                                 <td>Prueba cualitativa</td>
                             </tr>
                             <tr>
                                 <td>Detección Salmonella spp.</td>
                                 <td></td>
-                                <td><input type="checkbox" bind:checked={salmonellaDetection} /></td>
+                                <td><input type="number" bind:value={salmonellaDetection} /></td>
                                 <td>Ausencia</td>
                                 <td>Prueba cualitativa</td>
                             </tr>
@@ -394,77 +540,15 @@
 
                 <div class="form-actions">
                     <button type="submit">Guardar</button>
+                    <button type="button" on:click={() => goto('/register/butter')}>Regresar</button>
+                    <button type="button" on:click={deleteReport} class="delete-btn">Eliminar Reporte</button>
                 </div>
             </form>
-
-            <div class="mt-6">
-                <h2 class="text-xl font-semibold mb-2">Ver reportes históricos</h2>
-                <div class="flex gap-4 mb-4">
-                    <div>
-                        <label for="startDate" class="block text-lg font-medium">Fecha Inicio:</label>
-                        <input
-                            type="date"
-                            id="startDate"
-                            bind:value={startDate}
-                            on:change={fetchReports}
-                            class="mt-1 block border rounded p-2"
-                        />
-                    </div>
-                    <div>
-                        <label for="endDate" class="block text-lg font-medium">Fecha Fin:</label>
-                        <input
-                            type="date"
-                            id="endDate"
-                            bind:value={endDate}
-                            on:change={fetchReports}
-                            class="mt-1 block border rounded p-2"
-                        />
-                    </div>
-                </div>
-
-                {#if loading}
-                    <p>Loading reports...</p>
-                {:else if error}
-                    <p class="text-red-600">{error}</p>
-                {:else if reports.length === 0}
-                    <p>No se encontraron reportes en las fechas seleccionadas</p>
-                {:else}
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr>
-                                <th class="border p-2">N° Muestra</th>
-                                <th class="border p-2">Fecha</th>
-                                <th class="border p-2">Usuario</th>
-                                <th class="border p-2">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {#each reports as report}
-                                <tr>
-                                    <td class="border p-2">
-                                        {#if report.sampleNumber}Muestra: {report.sampleNumber}{/if}
-                                    </td>
-                                    <td class="border p-2">{report.date}</td>
-                                    <td class="border p-2">{report.userId}</td>
-                                    <td class="border p-2">
-                                        <button
-                                            on:click={() => viewReport(report.id)}
-                                            class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                                        >
-                                            Ver
-                                        </button>
-                                    </td>
-                                </tr>
-                            {/each}
-                        </tbody>
-                    </table>
-                {/if}
-            </div>
         </section>
     </div>
 
     <div slot="not_authed">
-        <p>Iniciar sesión para ingresar a diarylab</p>
+        <p>Iniciar sesión para ingresar a DiaryLab</p>
     </div>
 </AuthGuard>
 
@@ -515,7 +599,8 @@
         border-collapse: collapse;
         margin-bottom: 1rem;
     }
-    th, td {
+    th,
+    td {
         border: 1px solid #000;
         padding: 0.5rem;
         text-align: center;
@@ -557,10 +642,5 @@
     }
     button:hover {
         background-color: #5b9ce3;
-    }
-    .flex {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
     }
 </style>

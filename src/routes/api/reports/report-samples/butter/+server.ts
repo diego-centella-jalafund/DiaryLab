@@ -6,31 +6,31 @@ const { Pool } = pkg;
 import sanitizeHtml from 'sanitize-html';
 
 const pool = new Pool({
-	user: 'user',
-	host: 'localhost',
-	database: 'midb',
-	password: 'password',
-	port: 5439,
-	options: '-c search_path=diarylab,public'
+    user: 'user',
+    host: 'localhost',
+    database: 'midb',
+    password: 'password',
+    port: 5439,
+    options: '-c search_path=diarylab,public'
 });
 
 async function getPublicKey(): Promise<string> {
-	const response = await fetch(
-		'http://localhost:8080/realms/diarylab/protocol/openid-connect/certs'
-	);
-	const jwks = await response.json();
-	const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
-	return jwkToPem(jwk);
+    const response = await fetch(
+        'http://localhost:8080/realms/diarylab/protocol/openid-connect/certs'
+    );
+    const jwks = await response.json();
+    const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
+    return jwkToPem(jwk);
 }
 
 let KEYCLOAK_PUBLIC_KEY: string | null = null;
 (async () => {
-	try {
-		KEYCLOAK_PUBLIC_KEY = await getPublicKey();
-		console.log('Keycloak public key fetched successfully');
-	} catch (error) {
-		console.error('Failed to initialize Keycloak public key:', error);
-	}
+    try {
+        KEYCLOAK_PUBLIC_KEY = await getPublicKey();
+        console.log('Keycloak public key fetched successfully');
+    } catch (error) {
+        console.error('Failed to initialize Keycloak public key:', error);
+    }
 })();
 
 export async function GET({ request, url }) {
@@ -69,23 +69,21 @@ export async function GET({ request, url }) {
             return json({ error: 'Invalid date format' }, { status: 400 });
         }
 
-        const queryParams: any[] = [userId, startDateObj, endDateObj];
+        const queryParams: any[] = [userId, startDateObj, endDateObj]; 
         const query = `
-            SELECT date, titratable_acidity_m1, titratable_acidity_m2, titratable_acidity_m3
-            FROM probiotic_yogurt
+            SELECT sampling_date, acidity_percent
+            FROM butter
             WHERE user_id = $1
-            AND date BETWEEN $2 AND $3
-            ORDER BY date ASC
+            AND sampling_date BETWEEN $2 AND $3
+            ORDER BY sampling_date ASC
         `;
 
         const client = await pool.connect();
         try {
             const result = await client.query(query, queryParams);
             const transformedData = result.rows.map((row) => ({
-                sampling_date: row.date,
-                titratableAcidityM1: row.titratable_acidity_m1 || 0,
-                titratableAcidityM2: row.titratable_acidity_m2 || 0,
-                titratableAcidityM3: row.titratable_acidity_m3 || 0
+                sampling_date: row.sampling_date,
+                titratableAcidity: row.acidity_percent || 0,
             }));
 
             return json({ success: true, data: transformedData }, { status: 200 });

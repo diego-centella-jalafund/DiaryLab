@@ -52,7 +52,7 @@
             </div>
             <a href="/import-file" class="nav-link-1">Importar Archivo</a>
             <a href="/evaluation" class="nav-link-2">Evaluacion</a>
-            <a href="/reports-samples" class="nav-link-3">Reporte de Muestras</a>
+            <a href="/report-samples" class="nav-link-3">Reporte de Muestras</a>
             <a href="/reports-prediction" class="nav-link-4">Reporte de prediccion</a>
         </div>
         <button class="logout-btn" on:click={logout}>Cerrar Sesion</button>
@@ -121,10 +121,7 @@
         font-weight: 500;
         text-transform: uppercase;
         text-decoration: none;
-        pointer-events: none;
         color: #cccccc; 
-        cursor: not-allowed;
-        opacity: 0.6; 
     }
     .nav-link-4 {
         color: #dbd6d6; 

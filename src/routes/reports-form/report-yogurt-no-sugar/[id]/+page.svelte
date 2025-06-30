@@ -154,7 +154,7 @@
 				appearance = result.measurements.appearance || '';
 				coliformCount = result.bacteriological.totalColiforms || '';
 				moldYeastCount = result.bacteriological.yeastMoldCount || '';
-				staphylococcusCount = result.bacteriological.escherichiaColi ? '1' : '0'; // Assuming presence as 1, absence as 0
+				staphylococcusCount = result.bacteriological.escherichiaColi ? '1' : '0'; 
 				acinetobacterCount = result.bacteriological.fecalColiforms || '';
 			}
 		} catch (err) {
@@ -226,7 +226,7 @@
 			appearance,
 			coliformCount: parseFloat(coliformCount) || 0,
 			moldYeastCount: parseFloat(moldYeastCount) || 0,
-			staphylococcusCount: parseInt(staphylococcusCount) || 0, // 1 for presence, 0 for absence
+			staphylococcusCount: parseInt(staphylococcusCount) || 0, 
 			acinetobacterCount: parseFloat(acinetobacterCount) || 0
 		};
 
