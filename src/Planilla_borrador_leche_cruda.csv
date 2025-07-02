@@ -1,0 +1,26 @@
+,,,,,,,
+,INFORME DE ANÁLISIS LECHE CRUDA,,,,,,
+,,,,,,,
+,Fecha: 25___ / __03_ / 24___,,,,Fecha de Análisis:  25___ / 03___ / 24___,,
+,,,,,,,
+,INFORMACIÓN GENERAL,,,,,,
+,,,TARDE,MADRUGADA,GMP 2,,
+,N° Muestra,,966,967,968,,
+,Hora de muestreo,,02:15:00 AM,04:15:00 PM,02:25:00 AM,,
+,Temp. muestreo °C,,"1,0","24,5","1",,
+,,,,,,,
+,TABLA DE RESULTADOS,,,,,,
+,INFORMACIÓN FISICOQUÍMICA,,,,,,
+,PARÁMETRO,UNID.,ORDEÑO,,,RANGO (*),MÉTODO DE ENSAYO
+,,,TARDE,MADRUGADA,GMP 2,,
+,pH a 20°C,Unid. de pH,"6,68","6,68","6,68",6.60 a 6.80,Método potenciométrico
+,Temperatura pH,°C,"19,6","21,1","20,5",15 a 25,Termómetro
+,Acidez titulable,% ác. láctico,"0,16","0,17","0,17",0.13 a 0.18,Método volumétrico
+,Densidad a 20°C,g/cm3,"1,02310","1,02210","1,02200",1.028 a 1.034,Lactodensímetro
+,Materia Grasa,%,"3,1","3,3","3,3",Min. 3.00,Método Gerber
+,Sólidos no Grasos,%,"8,1","8,7","9,8",Min. 8.2,Lactómetro de Bertuzzi
+,Alcoholimetría,,negativo,negativo,negativo,Negativo,Prueba de Alcohol al 78%
+,INFORMACIÓN MICROBIOLÓGICA,,,,,,
+,TRAM (Tiempo de reducción de azul de metileno),h,Decloracion,Decloracion,Decloracion,> 1 h,Prueba de reductasa
+,,,"+6,1h","+4,2 h","+ 3,1 h",,
+,(*) Norma Boliviana NB 33013:2013: Requisitos Fisicoquímicos y Microbiológicos para leche cruda y fresca.,,,,,,
