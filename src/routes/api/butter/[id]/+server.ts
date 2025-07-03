@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
 import type { RequestHandler } from './$types';
 import sanitizeHtml from 'sanitize-html';
+import { neon } from '@neondatabase/serverless';
+import 'dotenv/config';
 
 const pool = new Pool({
     user: process.env.DB_USER || 'user',
@@ -15,17 +17,24 @@ const pool = new Pool({
     options: process.env.DB_OPTIONS || '-c search_path=diarylab,public',
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
 });
+const connectionString: string = process.env.DATABASE_URL as string;
+const sql = neon(connectionString);
 (async () => {
     try {
+        const response = await sql`SELECT version()`;
+        const { version } = response[0];
         const client = await pool.connect();
         console.log('Database connected successfully');
         client.release();
+        return {
+            version,
+        };
     } catch (error) {
         console.error('Database connection failed:', error);
     }
 })();
 async function getPublicKey() {
-    const response = await fetch('http://localhost:8080/realms/diarylab/protocol/openid-connect/certs');
+    const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
     const jwks = await response.json();
     const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
     return jwkToPem(jwk);

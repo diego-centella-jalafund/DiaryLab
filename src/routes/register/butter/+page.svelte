@@ -7,7 +7,7 @@
     import { writable } from 'svelte/store';
     import { goto } from '$app/navigation';
 
-    export let data: { id: string };
+    export let data;
 
     let user: User | null = null;
 
