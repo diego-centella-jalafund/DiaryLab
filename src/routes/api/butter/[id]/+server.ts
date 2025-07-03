@@ -7,12 +7,13 @@ import type { RequestHandler } from './$types';
 import sanitizeHtml from 'sanitize-html';
 
 const pool = new Pool({
-    user: 'user',
-    host: 'localhost',
-    database: 'midb',
-    password: 'password',
-    port: 5439,
-    options: '-c search_path=diarylab,public'
+    user: process.env.DB_USER || 'user',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'midb',
+    password: process.env.DB_PASSWORD || 'password',
+    port: Number(process.env.DB_PORT) || 5439,
+    options: process.env.DB_OPTIONS || '-c search_path=diarylab,public',
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
 });
 (async () => {
     try {
