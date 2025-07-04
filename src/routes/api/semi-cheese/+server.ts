@@ -49,6 +49,7 @@ async function getPublicKey() {
         console.error('Database connection failed:', error);
     }
 })();
+let KEYCLOAK_PUBLIC_KEY: string;
 (async () => {
     KEYCLOAK_PUBLIC_KEY = await getPublicKey();
 })();
