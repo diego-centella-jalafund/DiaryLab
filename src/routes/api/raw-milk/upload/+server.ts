@@ -13,7 +13,7 @@ const tempDir = path.join(process.cwd(), 'temp');
 const cleanedFileName = 'fileTest_cleaned.csv';
 
 async function getPublicKey(): Promise<string> {
-    const response = await fetch('http://localhost:8080/realms/diarylab/protocol/openid-connect/certs');
+    const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
     const jwks = await response.json();
     const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
     return jwkToPem(jwk);

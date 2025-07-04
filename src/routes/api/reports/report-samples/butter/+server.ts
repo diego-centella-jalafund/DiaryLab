@@ -5,19 +5,36 @@ import jwkToPem from 'jwk-to-pem';
 const { Pool } = pkg;
 import sanitizeHtml from 'sanitize-html';
 
-const pool = new Pool({
-    user: 'user',
-    host: 'localhost',
-    database: 'midb',
-    password: 'password',
-    port: 5439,
-    options: '-c search_path=diarylab,public'
-});
+import 'dotenv/config';
+import { neon } from '@neondatabase/serverless';
 
-async function getPublicKey(): Promise<string> {
-    const response = await fetch(
-        'http://localhost:8080/realms/diarylab/protocol/openid-connect/certs'
-    );
+const pool = new Pool({
+    user: process.env.DB_USER || 'user',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'midb',
+    password: process.env.DB_PASSWORD || 'password',
+    port: Number(process.env.DB_PORT) || 5439,
+    options: process.env.DB_OPTIONS || '-c search_path=diarylab,public',
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+});
+const connectionString: string = process.env.DATABASE_URL as string;
+const sql = neon(connectionString);
+(async () => {
+    try {
+        const response = await sql`SELECT version()`;
+        const { version } = response[0];
+        const client = await pool.connect();
+        console.log('Database connected successfully');
+        client.release();
+        return {
+            version,
+        };
+    } catch (error) {
+        console.error('Database connection failed:', error);
+    }
+})();
+async function getPublicKey() {
+    const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
     const jwks = await response.json();
     const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
     return jwkToPem(jwk);
