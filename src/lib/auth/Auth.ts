@@ -16,7 +16,10 @@ export class Auth {
     this.#options = options;
     this.#user = null;
     if (typeof window !== 'undefined') {
-      this.#keycloak = new Keycloak(this.#options);
+      this.#keycloak = new Keycloak({
+        ...this.#options,
+        responseMode: 'query', 
+      });
     }
   }
 
@@ -31,6 +34,7 @@ export class Auth {
       await this.init({
         token: storedToken,
         refreshToken: storedRefreshToken,
+        responseMode: 'query', 
       });
     } else {
       this.#observable.next(null);
@@ -57,7 +61,11 @@ export class Auth {
     this.#initInProgress = true;
     this.#initPromise = (async () => {
       try {
-        const authenticated = await this.#keycloak.init(params);
+        const authenticated = await this.#keycloak.init({
+          ...params,
+          onLoad: 'login-required',
+          responseMode: 'query', 
+        });
         this.#isInitialized = true;
         if (authenticated && this.#keycloak.tokenParsed) {
           localStorage.setItem('access_token', this.#keycloak.token || '');
@@ -110,6 +118,7 @@ export class Auth {
     return {
       token: localStorage.getItem('access_token'),
       refreshToken: localStorage.getItem('refresh_token'),
+      responseMode: 'query', 
     };
   }
 
@@ -169,10 +178,10 @@ export class Auth {
     try {
       if (!this.#isInitialized) {
         console.log('Initializing Keycloak for login');
-        await this.init({ onLoad: 'login-required', redirectUri: options.redirectUri });
+        await this.init({ onLoad: 'login-required', redirectUri: options.redirectUri, responseMode: 'query' });
       }
       console.log('Redirecting to Keycloak login with redirectUri:', options.redirectUri);
-      await this.#keycloak.login(options);
+      await this.#keycloak.login({ ...options, responseMode: 'query' });
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -184,7 +193,7 @@ export class Auth {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('exp');
-    this.#keycloak.logout({ redirectUri: 'http://localhost:5173' });
+    this.#keycloak.logout({ redirectUri: 'https://diary-lab-diego-centella-jalafunds-projects.vercel.app' }); 
     this.#user = null;
     this.#observable.next(null);
   }
@@ -199,6 +208,7 @@ export class Auth {
           await this.init({
             onLoad: 'check-sso',
             redirectUri: window.location.href.split('#')[0],
+            responseMode: 'query', 
           });
         }
       } catch (error) {
