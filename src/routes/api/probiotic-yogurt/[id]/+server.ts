@@ -1,221 +1,199 @@
 import { json } from '@sveltejs/kit';
-import pkg from 'pg';
-const { Pool } = pkg;
+import { neon } from '@neondatabase/serverless';
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
-import type { RequestHandler } from './$types';
 import sanitizeHtml from 'sanitize-html';
+import type { RequestHandler } from './$types';
 import 'dotenv/config';
-import { neon } from '@neondatabase/serverless';
-const pool = new Pool({
-    user: process.env.DB_USER || 'user',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'midb',
-    password: process.env.DB_PASSWORD || 'password',
-    port: Number(process.env.DB_PORT) || 5439,
-    options: process.env.DB_OPTIONS || '-c search_path=diarylab,public',
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
-});
+
 const connectionString: string = process.env.DATABASE_URL as string;
 const sql = neon(connectionString);
-(async () => {
-    try {
-        const response = await sql`SELECT version()`;
-        const { version } = response[0];
-        const client = await pool.connect();
-        console.log('Database connected successfully');
-        client.release();
-        return {
-            version,
-        };
-    } catch (error) {
-        console.error('Database connection failed:', error);
-    }
-})();
-async function getPublicKey() {
-    const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
-    const jwks = await response.json();
-    const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
-    return jwkToPem(jwk);
-}
 
-let KEYCLOAK_PUBLIC_KEY: string;
-(async () => {
-    KEYCLOAK_PUBLIC_KEY = await getPublicKey();
-})();
+async function getPublicKey(): Promise<string> {
+    try {
+        const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
+        if (!response.ok) throw new Error(`Failed to fetch JWKS: ${response.statusText}`);
+        const jwks = await response.json();
+        const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
+        if (!jwk) throw new Error('No signing key found');
+        return jwkToPem(jwk);
+    } catch (error) {
+        console.error('Failed to fetch public key:', error);
+        throw error;
+    }
+}
 
 export const GET: RequestHandler = async ({ request, params }) => {
     try {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader?.startsWith('Bearer ')) {
-            return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+            return json({ success: false, error: 'Missing or invalid Authorization header' }, { status: 401 });
         }
 
         const token = authHeader.replace('Bearer ', '');
-        let decodedToken: { sub: string };
+        let userId: string;
         try {
-            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY || '', {
-                algorithms: ['RS256']
-            }) as { sub: string };
+            const publicKey = await getPublicKey();
+            const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
+            userId = sanitizeHtml(decoded.sub);
         } catch (error) {
-            console.error('Token verification failed:', error);
-            return json({ error: 'Invalid token' }, { status: 401 });
+            if (error instanceof jwt.TokenExpiredError) {
+                return json({ success: false, error: 'Token expired', reason: 'token_expired' }, { status: 401 });
+            }
+            return json({ success: false, error: `Invalid token: ${(error as Error).message}` }, { status: 401 });
         }
 
-        const userId = sanitizeHtml(decodedToken.sub);
         const reportId = sanitizeHtml(params.id || '');
-
         const parsedReportId = parseInt(reportId, 10);
         if (isNaN(parsedReportId) || parsedReportId <= 0) {
-            return json({ error: 'Invalid report ID' }, { status: 400 });
+            return json({ success: false, error: 'Invalid report ID' }, { status: 400 });
         }
 
-        const client = await pool.connect();
         try {
-            const query = `
+            const result = await sql`
                 SELECT *
-                FROM probiotic_yogurt
-                WHERE id = $1 AND user_id = $2
+                FROM diarylab.probiotic_yogurt
+                WHERE id = ${parsedReportId} AND user_id = ${userId}
             `;
-            const result = await client.query(query, [parsedReportId, userId]);
 
-            if (!result.rows.length) {
-                return json({ error: 'Report not found' }, { status: 404 });
+            if (!result.length) {
+                return json({ success: false, error: 'Report not found' }, { status: 404 });
             }
 
-            const row = result.rows[0];
+            const row = result[0];
             const report = {
                 id: row.id,
-                date: row.date,
+                date: row.date ?? null,
                 userId: row.user_id,
-                analysisDate: row.analysis_date,
+                analysisDate: row.analysis_date ?? null,
                 samples: {
                     sample1: {
-                        sampleNumber: row.sample_number1,
-                        lot: row.lot1,
-                        flavor: row.flavor1,
-                        productionDate: row.production_date1,
-                        expirationDate: row.expiration_date1,
-                        productionTemperature: row.production_temperature1,
-                        coldChamberTemperature: row.cold_chamber_temperature1,
-                        samplingTime: row.sampling_time1,
-                        netContent: row.net_content1
+                        sampleNumber: row.sample_number1 ?? null,
+                        lot: row.lot1 ?? null,
+                        flavor: row.flavor1 ?? null,
+                        productionDate: row.production_date1 ?? null,
+                        expirationDate: row.expiration_date1 ?? null,
+                        productionTemperature: row.production_temperature1 ?? null,
+                        coldChamberTemperature: row.cold_chamber_temperature1 ?? null,
+                        samplingTime: row.sampling_time1 ?? null,
+                        netContent: row.net_content1 ?? null,
                     },
                     sample2: {
-                        sampleNumber: row.sample_number2,
-                        lot: row.lot2,
-                        flavor: row.flavor2,
-                        productionDate: row.production_date2,
-                        expirationDate: row.expiration_date2,
-                        productionTemperature: row.production_temperature2,
-                        coldChamberTemperature: row.cold_chamber_temperature2,
-                        samplingTime: row.sampling_time2,
-                        netContent: row.net_content2
+                        sampleNumber: row.sample_number2 ?? null,
+                        lot: row.lot2 ?? null,
+                        flavor: row.flavor2 ?? null,
+                        productionDate: row.production_date2 ?? null,
+                        expirationDate: row.expiration_date2 ?? null,
+                        productionTemperature: row.production_temperature2 ?? null,
+                        coldChamberTemperature: row.cold_chamber_temperature2 ?? null,
+                        samplingTime: row.sampling_time2 ?? null,
+                        netContent: row.net_content2 ?? null,
                     },
                     sample3: {
-                        sampleNumber: row.sample_number3,
-                        lot: row.lot3,
-                        flavor: row.flavor3,
-                        productionDate: row.production_date3,
-                        expirationDate: row.expiration_date3,
-                        productionTemperature: row.production_temperature3,
-                        coldChamberTemperature: row.cold_chamber_temperature3,
-                        samplingTime: row.sampling_time3,
-                        netContent: row.net_content3
-                    }
+                        sampleNumber: row.sample_number3 ?? null,
+                        lot: row.lot3 ?? null,
+                        flavor: row.flavor3 ?? null,
+                        productionDate: row.production_date3 ?? null,
+                        expirationDate: row.expiration_date3 ?? null,
+                        productionTemperature: row.production_temperature3 ?? null,
+                        coldChamberTemperature: row.cold_chamber_temperature3 ?? null,
+                        samplingTime: row.sampling_time3 ?? null,
+                        netContent: row.net_content3 ?? null,
+                    },
                 },
                 measurements: {
                     fatContent: {
-                        m1: row.fat_content_m1,
-                        m2: row.fat_content_m2,
-                        m3: row.fat_content_m3,
-                        observation: row.fat_content_observation
+                        m1: row.fat_content_m1 ?? null,
+                        m2: row.fat_content_m2 ?? null,
+                        m3: row.fat_content_m3 ?? null,
+                        observation: row.fat_content_observation ?? null,
                     },
                     sng: {
-                        m1: row.sng_m1,
-                        m2: row.sng_m2,
-                        m3: row.sng_m3,
-                        observation: row.sng_observation
+                        m1: row.sng_m1 ?? null,
+                        m2: row.sng_m2 ?? null,
+                        m3: row.sng_m3 ?? null,
+                        observation: row.sng_observation ?? null,
                     },
                     titratableAcidity: {
-                        m1: row.titratable_acidity_m1,
-                        m2: row.titratable_acidity_m2,
-                        m3: row.titratable_acidity_m3,
-                        observation: row.titratable_acidity_observation
+                        m1: row.titratable_acidity_m1 ?? null,
+                        m2: row.titratable_acidity_m2 ?? null,
+                        m3: row.titratable_acidity_m3 ?? null,
+                        observation: row.titratable_acidity_observation ?? null,
                     },
                     ph: {
-                        m1: row.ph_m1,
-                        m2: row.ph_m2,
-                        m3: row.ph_m3,
-                        observation: row.ph_observation
+                        m1: row.ph_m1 ?? null,
+                        m2: row.ph_m2 ?? null,
+                        m3: row.ph_m3 ?? null,
+                        observation: row.ph_observation ?? null,
                     },
                     phTemperature: {
-                        m1: row.ph_temperature_m1,
-                        m2: row.ph_temperature_m2,
-                        m3: row.ph_temperature_m3,
-                        observation: row.ph_temperature_observation
+                        m1: row.ph_temperature_m1 ?? null,
+                        m2: row.ph_temperature_m2 ?? null,
+                        m3: row.ph_temperature_m3 ?? null,
+                        observation: row.ph_temperature_observation ?? null,
                     },
                     color: {
-                        m1: row.color_m1,
-                        m2: row.color_m2,
-                        m3: row.color_m3,
-                        observation: row.color_observation
+                        m1: row.color_m1 ?? null,
+                        m2: row.color_m2 ?? null,
+                        m3: row.color_m3 ?? null,
+                        observation: row.color_observation ?? null,
                     },
                     smell: {
-                        m1: row.smell_m1,
-                        m2: row.smell_m2,
-                        m3: row.smell_m3,
-                        observation: row.smell_observation
+                        m1: row.smell_m1 ?? null,
+                        m2: row.smell_m2 ?? null,
+                        m3: row.smell_m3 ?? null,
+                        observation: row.smell_observation ?? null,
                     },
                     taste: {
-                        m1: row.taste_m1,
-                        m2: row.taste_m2,
-                        m3: row.taste_m3,
-                        observation: row.taste_observation
+                        m1: row.taste_m1 ?? null,
+                        m2: row.taste_m2 ?? null,
+                        m3: row.taste_m3 ?? null,
+                        observation: row.taste_observation ?? null,
                     },
                     appearance: {
-                        m1: row.appearance_m1,
-                        m2: row.appearance_m2,
-                        m3: row.appearance_m3,
-                        observation: row.appearance_observation
+                        m1: row.appearance_m1 ?? null,
+                        m2: row.appearance_m2 ?? null,
+                        m3: row.appearance_m3 ?? null,
+                        observation: row.appearance_observation ?? null,
                     },
                     probioticCount: {
-                        m1: row.probiotic_count_m1,
-                        m2: row.probiotic_count_m2,
-                        m3: row.probiotic_count_m3,
+                        m1: row.probiotic_count_m1 ?? null,
+                        m2: row.probiotic_count_m2 ?? null,
+                        m3: row.probiotic_count_m3 ?? null,
                     },
                     coliformCount: {
-                        m1: row.coliform_count_m1,
-                        m2: row.coliform_count_m2,
-                        m3: row.coliform_count_m3,
+                        m1: row.coliform_count_m1 ?? null,
+                        m2: row.coliform_count_m2 ?? null,
+                        m3: row.coliform_count_m3 ?? null,
                     },
                     fecalColiformCount: {
-                        m1: row.fecal_coliform_count_m1,
-                        m2: row.fecal_coliform_count_m2,
-                        m3: row.fecal_coliform_count_m3,
+                        m1: row.fecal_coliform_count_m1 ?? null,
+                        m2: row.fecal_coliform_count_m2 ?? null,
+                        m3: row.fecal_coliform_count_m3 ?? null,
                     },
                     eColiPresence: {
-                        m1: row.e_coli_presence_m1,
-                        m2: row.e_coli_presence_m2,
-                        m3: row.e_coli_presence_m3,
+                        m1: row.e_coli_presence_m1 ?? null,
+                        m2: row.e_coli_presence_m2 ?? null,
+                        m3: row.e_coli_presence_m3 ?? null,
                     },
                     moldYeastCount: {
-                        m1: row.mold_yeast_count_m1,
-                        m2: row.mold_yeast_count_m2,
-                        m3: row.mold_yeast_count_m3,
-                    }
+                        m1: row.mold_yeast_count_m1 ?? null,
+                        m2: row.mold_yeast_count_m2 ?? null,
+                        m3: row.mold_yeast_count_m3 ?? null,
+                    },
                 },
-                analysisTime: row.analysis_time,
-                createdAt: row.created_at
+                analysisTime: row.analysis_time ?? null,
+                createdAt: row.created_at ?? null,
             };
 
-            return json(report, { status: 200 });
-        } finally {
-            client.release();
+            return json({ success: true, data: report }, { status: 200 });
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            return json({ success: false, error: `Database error: ${(dbError as Error).message}` }, { status: 500 });
         }
     } catch (error) {
-        console.error('Server error:', error);
-        return json({ error: 'Internal server error' }, { status: 500 });
+        console.error('Unexpected error:', error);
+        return json({ success: false, error: `Internal server error: ${(error as Error).message}` }, { status: 500 });
     }
 };
 
@@ -223,214 +201,130 @@ export const PUT: RequestHandler = async ({ request, params }) => {
     try {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+            return json({ success: false, error: 'Missing or invalid Authorization header' }, { status: 401 });
         }
 
         const token = authHeader.replace('Bearer ', '');
-        let decodedToken;
+        let userId: string;
         try {
-            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as { sub: string };
+            const publicKey = await getPublicKey();
+            const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
+            userId = sanitizeHtml(decoded.sub);
         } catch (error) {
-            console.error('Token verification failed:', error);
-            return json({ error: 'Invalid token', reason: 'token_invalid' }, { status: 401 });
+            if (error instanceof jwt.TokenExpiredError) {
+                return json({ success: false, error: 'Token expired', reason: 'token_expired' }, { status: 401 });
+            }
+            return json({ success: false, error: `Invalid token: ${(error as Error).message}` }, { status: 401 });
         }
 
-        const userId = decodedToken.sub;
         const id = sanitizeHtml(params.id || '');
-        if (!id) {
-            return json({ error: 'Missing id' }, { status: 400 });
+        const parsedId = parseInt(id, 10);
+        if (!id || isNaN(parsedId) || parsedId <= 0) {
+            return json({ success: false, error: 'Missing or invalid id' }, { status: 400 });
         }
 
         const formData = await request.json();
 
-        const query = `
-            UPDATE probiotic_yogurt
-            SET date = $1,
-                analysis_date = $2,
-                sample_number1 = $3,
-                lot1 = $4,
-                flavor1 = $5,
-                production_date1 = $6,
-                expiration_date1 = $7,
-                production_temperature1 = $8,
-                cold_chamber_temperature1 = $9,
-                sampling_time1 = $10,
-                net_content1 = $11,
-                sample_number2 = $12,
-                lot2 = $13,
-                flavor2 = $14,
-                production_date2 = $15,
-                expiration_date2 = $16,
-                production_temperature2 = $17,
-                cold_chamber_temperature2 = $18,
-                sampling_time2 = $19,
-                net_content2 = $20,
-                sample_number3 = $21,
-                lot3 = $22,
-                flavor3 = $23,
-                production_date3 = $24,
-                expiration_date3 = $25,
-                production_temperature3 = $26,
-                cold_chamber_temperature3 = $27,
-                sampling_time3 = $28,
-                net_content3 = $29,
-                fat_content_m1 = $30,
-                fat_content_m2 = $31,
-                fat_content_m3 = $32,
-                fat_content_observation = $3,
-                sng_m1 = $34,
-                sng_m2 = $35,
-                sng_m3 = $36,
-                sng_observation = $37,
-                titratable_acidity_m1 = $38,
-                titratable_acidity_m2 = $39,
-                titratable_acidity_m3 = $40,
-                titratable_acidity_observation = $41,
-                ph_m1 = $41,
-                ph_m2 = $42,
-                ph_m3 = $43,
-                ph_observation = $44,
-                ph_temperature_m1 = $45,
-                ph_temperature_m2 = $46,
-                ph_temperature_m3 = $47,
-                ph_temperature_observation = $48,
-                color_m1 = $49,
-                color_m2 = $50,
-                color_m3 = $51,
-                color_observation = $52,
-                smell_m1 = $53,
-                smell_m2 = $54,
-                smell_m3 = $55,
-                smell_observation = $56,
-                taste_m1 = $57,
-                taste_m2 = $58,
-                taste_m3 = $59,
-                taste_observation = $60,
-                appearance_m1 = $61,
-                appearance_m2 = $62,
-                appearance_m3 = $63,
-                appearance_observation = $64,
-                probiotic_count_m1 = $65,
-                probiotic_count_m2 = $66,
-                probiotic_count_m3 = $67,
-                probiotic_count_observation = $68,
-                coliform_count_m1 = $69,
-                coliform_count_m2 = $70,
-                coliform_count_m3 = $71,
-                fecal_coliform_count_m1 = $73,
-                fecal_coliform_count_m2 = $74,
-                fecal_coliform_count_m3 = $75,
-                e_coli_presence_m1 = $76,
-                e_coli_presence_m2 = $77,
-                e_coli_presence_m3 = $78,
-                mold_yeast_count_m1 = $79,
-                mold_yeast_count_m2 = $80,
-                mold_yeast_count_m3 = $81,
-                analysis_time = $82
-            WHERE id = $129 AND user_id = $130
-            RETURNING id;
-        `;
-
-        const values = [
-            formData.date || null,
-            formData.analysisDate || null,
-            formData.sampleNumber1 || null,
-            formData.lot1 || null,
-            formData.flavor1 || null,
-            formData.productionDate1 || null,
-            formData.expirationDate1 || null,
-            formData.productionTemperature1 ? parseFloat(formData.productionTemperature1) : null,
-            formData.coldChamberTemperature1 ? parseFloat(formData.coldChamberTemperature1) : null,
-            formData.samplingTime1 || null,
-            formData.netContent1 ? parseFloat(formData.netContent1) : null,
-            formData.sampleNumber2 || null,
-            formData.lot2 || null,
-            formData.flavor2 || null,
-            formData.productionDate2 || null,
-            formData.expirationDate2 || null,
-            formData.productionTemperature2 ? parseFloat(formData.productionTemperature2) : null,
-            formData.coldChamberTemperature2 ? parseFloat(formData.coldChamberTemperature2) : null,
-            formData.samplingTime2 || null,
-            formData.netContent2 ? parseFloat(formData.netContent2) : null,
-            formData.sampleNumber3 || null,
-            formData.lot3 || null,
-            formData.flavor3 || null,
-            formData.productionDate3 || null,
-            formData.expirationDate3 || null,
-            formData.productionTemperature3 ? parseFloat(formData.productionTemperature3) : null,
-            formData.coldChamberTemperature3 ? parseFloat(formData.coldChamberTemperature3) : null,
-            formData.samplingTime3 || null,
-            formData.netContent3 ? parseFloat(formData.netContent3) : null,
-            formData.fatContentM1 ? parseFloat(formData.fatContentM1) : null,
-            formData.fatContentM2 ? parseFloat(formData.fatContentM2) : null,
-            formData.fatContentM3 ? parseFloat(formData.fatContentM3) : null,
-            formData.fatContentObservation || null,
-            formData.sngM1 ? parseFloat(formData.sngM1) : null,
-            formData.sngM2 ? parseFloat(formData.sngM2) : null,
-            formData.sngM3 ? parseFloat(formData.sngM3) : null,
-            formData.sngObservation || null,
-            formData.titratableAcidityM1 ? parseFloat(formData.titratableAcidityM1) : null,
-            formData.titratableAcidityM2 ? parseFloat(formData.titratableAcidityM2) : null,
-            formData.titratableAcidityM3 ? parseFloat(formData.titratableAcidityM3) : null,
-            formData.titratableAcidityObservation || null,
-            formData.phM1 ? parseFloat(formData.phM1) : null,
-            formData.phM2 ? parseFloat(formData.phM2) : null,
-            formData.phM3 ? parseFloat(formData.phM3) : null,
-            formData.phObservation || null,
-            formData.phTemperatureM1 ? parseFloat(formData.phTemperatureM1) : null,
-            formData.phTemperatureM2 ? parseFloat(formData.phTemperatureM2) : null,
-            formData.phTemperatureM3 ? parseFloat(formData.phTemperatureM3) : null,
-            formData.phTemperatureObservation || null,
-            formData.colorM1 || null,
-            formData.colorM2 || null,
-            formData.colorM3 || null,
-            formData.colorObservation || null,
-            formData.smellM1 || null,
-            formData.smellM2 || null,
-            formData.smellM3 || null,
-            formData.smellObservation || null,
-            formData.tasteM1 || null,
-            formData.tasteM2 || null,
-            formData.tasteM3 || null,
-            formData.tasteObservation || null,
-            formData.appearanceM1 || null,
-            formData.appearanceM2 || null,
-            formData.appearanceM3 || null,
-            formData.appearanceObservation || null,
-            formData.probioticCountM1 ? parseFloat(formData.probioticCountM1) : null,
-            formData.probioticCountM2 ? parseFloat(formData.probioticCountM2) : null,
-            formData.probioticCountM3 ? parseFloat(formData.probioticCountM3) : null,
-            formData.probioticCountObservation || null,
-            formData.coliformCountM1 ? parseInt(formData.coliformCountM1, 10) : null,
-            formData.coliformCountM2 ? parseInt(formData.coliformCountM2, 10) : null,
-            formData.coliformCountM3 ? parseInt(formData.coliformCountM3, 10) : null,
-            formData.fecalColiformCountM1 ? parseInt(formData.fecalColiformCountM1, 10) : null,
-            formData.fecalColiformCountM2 ? parseInt(formData.fecalColiformCountM2, 10) : null,
-            formData.fecalColiformCountM3 ? parseInt(formData.fecalColiformCountM3, 10) : null,
-            formData.eColiPresenceM1 || null,
-            formData.eColiPresenceM2 || null,
-            formData.eColiPresenceM3 || null,
-            formData.moldYeastCountM1 ? parseInt(formData.moldYeastCountM1, 10) : null,
-            formData.moldYeastCountM2 ? parseInt(formData.moldYeastCountM2, 10) : null,
-            formData.moldYeastCountM3 ? parseInt(formData.moldYeastCountM3, 10) : null,
-            formData.analysisTime || null,
-            id,
-            userId
-        ];
-
-        const client = await pool.connect();
         try {
-            const result = await client.query(query, values);
-            if (result.rowCount === 0) {
-                return json({ error: 'Record not found or unauthorized' }, { status: 404 });
+            const result = await sql`
+                UPDATE diarylab.probiotic_yogurt
+                SET date = ${formData.date || null},
+                    analysis_date = ${formData.analysisDate || null},
+                    sample_number1 = ${formData.sampleNumber1 || null},
+                    lot1 = ${formData.lot1 || null},
+                    flavor1 = ${formData.flavor1 || null},
+                    production_date1 = ${formData.productionDate1 || null},
+                    expiration_date1 = ${formData.expirationDate1 || null},
+                    production_temperature1 = ${formData.productionTemperature1 ? parseFloat(formData.productionTemperature1) : null},
+                    cold_chamber_temperature1 = ${formData.coldChamberTemperature1 ? parseFloat(formData.coldChamberTemperature1) : null},
+                    sampling_time1 = ${formData.samplingTime1 || null},
+                    net_content1 = ${formData.netContent1 ? parseFloat(formData.netContent1) : null},
+                    sample_number2 = ${formData.sampleNumber2 || null},
+                    lot2 = ${formData.lot2 || null},
+                    flavor2 = ${formData.flavor2 || null},
+                    production_date2 = ${formData.productionDate2 || null},
+                    expiration_date2 = ${formData.expirationDate2 || null},
+                    production_temperature2 = ${formData.productionTemperature2 ? parseFloat(formData.productionTemperature2) : null},
+                    cold_chamber_temperature2 = ${formData.coldChamberTemperature2 ? parseFloat(formData.coldChamberTemperature2) : null},
+                    sampling_time2 = ${formData.samplingTime2 || null},
+                    net_content2 = ${formData.netContent2 ? parseFloat(formData.netContent2) : null},
+                    sample_number3 = ${formData.sampleNumber3 || null},
+                    lot3 = ${formData.lot3 || null},
+                    flavor3 = ${formData.flavor3 || null},
+                    production_date3 = ${formData.productionDate3 || null},
+                    expiration_date3 = ${formData.expirationDate3 || null},
+                    production_temperature3 = ${formData.productionTemperature3 ? parseFloat(formData.productionTemperature3) : null},
+                    cold_chamber_temperature3 = ${formData.coldChamberTemperature3 ? parseFloat(formData.coldChamberTemperature3) : null},
+                    sampling_time3 = ${formData.samplingTime3 || null},
+                    net_content3 = ${formData.netContent3 ? parseFloat(formData.netContent3) : null},
+                    fat_content_m1 = ${formData.fatContentM1 ? parseFloat(formData.fatContentM1) : null},
+                    fat_content_m2 = ${formData.fatContentM2 ? parseFloat(formData.fatContentM2) : null},
+                    fat_content_m3 = ${formData.fatContentM3 ? parseFloat(formData.fatContentM3) : null},
+                    fat_content_observation = ${formData.fatContentObservation || null},
+                    sng_m1 = ${formData.sngM1 ? parseFloat(formData.sngM1) : null},
+                    sng_m2 = ${formData.sngM2 ? parseFloat(formData.sngM2) : null},
+                    sng_m3 = ${formData.sngM3 ? parseFloat(formData.sngM3) : null},
+                    sng_observation = ${formData.sngObservation || null},
+                    titratable_acidity_m1 = ${formData.titratableAcidityM1 ? parseFloat(formData.titratableAcidityM1) : null},
+                    titratable_acidity_m2 = ${formData.titratableAcidityM2 ? parseFloat(formData.titratableAcidityM2) : null},
+                    titratable_acidity_m3 = ${formData.titratableAcidityM3 ? parseFloat(formData.titratableAcidityM3) : null},
+                    titratable_acidity_observation = ${formData.titratableAcidityObservation || null},
+                    ph_m1 = ${formData.phM1 ? parseFloat(formData.phM1) : null},
+                    ph_m2 = ${formData.phM2 ? parseFloat(formData.phM2) : null},
+                    ph_m3 = ${formData.phM3 ? parseFloat(formData.phM3) : null},
+                    ph_observation = ${formData.phObservation || null},
+                    ph_temperature_m1 = ${formData.phTemperatureM1 ? parseFloat(formData.phTemperatureM1) : null},
+                    ph_temperature_m2 = ${formData.phTemperatureM2 ? parseFloat(formData.phTemperatureM2) : null},
+                    ph_temperature_m3 = ${formData.phTemperatureM3 ? parseFloat(formData.phTemperatureM3) : null},
+                    ph_temperature_observation = ${formData.phTemperatureObservation || null},
+                    color_m1 = ${formData.colorM1 || null},
+                    color_m2 = ${formData.colorM2 || null},
+                    color_m3 = ${formData.colorM3 || null},
+                    color_observation = ${formData.colorObservation || null},
+                    smell_m1 = ${formData.smellM1 || null},
+                    smell_m2 = ${formData.smellM2 || null},
+                    smell_m3 = ${formData.smellM3 || null},
+                    smell_observation = ${formData.smellObservation || null},
+                    taste_m1 = ${formData.tasteM1 || null},
+                    taste_m2 = ${formData.tasteM2 || null},
+                    taste_m3 = ${formData.tasteM3 || null},
+                    taste_observation = ${formData.tasteObservation || null},
+                    appearance_m1 = ${formData.appearanceM1 || null},
+                    appearance_m2 = ${formData.appearanceM2 || null},
+                    appearance_m3 = ${formData.appearanceM3 || null},
+                    appearance_observation = ${formData.appearanceObservation || null},
+                    probiotic_count_m1 = ${formData.probioticCountM1 ? parseFloat(formData.probioticCountM1) : null},
+                    probiotic_count_m2 = ${formData.probioticCountM2 ? parseFloat(formData.probioticCountM2) : null},
+                    probiotic_count_m3 = ${formData.probioticCountM3 ? parseFloat(formData.probioticCountM3) : null},
+                    coliform_count_m1 = ${formData.coliformCountM1 ? parseInt(formData.coliformCountM1, 10) : null},
+                    coliform_count_m2 = ${formData.coliformCountM2 ? parseInt(formData.coliformCountM2, 10) : null},
+                    coliform_count_m3 = ${formData.coliformCountM3 ? parseInt(formData.coliformCountM3, 10) : null},
+                    fecal_coliform_count_m1 = ${formData.fecalColiformCountM1 ? parseInt(formData.fecalColiformCountM1, 10) : null},
+                    fecal_coliform_count_m2 = ${formData.fecalColiformCountM2 ? parseInt(formData.fecalColiformCountM2, 10) : null},
+                    fecal_coliform_count_m3 = ${formData.fecalColiformCountM3 ? parseInt(formData.fecalColiformCountM3, 10) : null},
+                    e_coli_presence_m1 = ${formData.eColiPresenceM1 || null},
+                    e_coli_presence_m2 = ${formData.eColiPresenceM2 || null},
+                    e_coli_presence_m3 = ${formData.eColiPresenceM3 || null},
+                    mold_yeast_count_m1 = ${formData.moldYeastCountM1 ? parseInt(formData.moldYeastCountM1, 10) : null},
+                    mold_yeast_count_m2 = ${formData.moldYeastCountM2 ? parseInt(formData.moldYeastCountM2, 10) : null},
+                    mold_yeast_count_m3 = ${formData.moldYeastCountM3 ? parseInt(formData.moldYeastCountM3, 10) : null},
+                    analysis_time = ${formData.analysisTime || null}
+                WHERE id = ${parsedId} AND user_id = ${userId}
+                RETURNING id
+            `;
+
+            if (result.length === 0) {
+                return json({ success: false, error: 'Record not found or unauthorized' }, { status: 404 });
             }
-            return json({ message: 'Data updated successfully', data: result.rows[0] }, { status: 200 });
-        } finally {
-            client.release();
+
+            return json({ success: true, message: 'Data updated successfully', data: { id: result[0].id } }, { status: 200 });
+        } catch (dbError) {
+            console.error('Error updating data:', dbError);
+            return json({ success: false, error: `Error updating data: ${(dbError as Error).message}` }, { status: 500 });
         }
     } catch (error) {
-        console.error('Error updating data:', error);
-        return json({ error: 'Error updating data', details: error.message }, { status: 500 });
+        console.error('Unexpected error:', error);
+        return json({ success: false, error: `Internal server error: ${(error as Error).message}` }, { status: 500 });
     }
 };
 
@@ -438,62 +332,57 @@ export const DELETE: RequestHandler = async ({ request, params }) => {
     try {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader?.startsWith('Bearer ')) {
-            return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+            return json({ success: false, error: 'Missing or invalid Authorization header' }, { status: 401 });
         }
 
         const token = authHeader.replace('Bearer ', '');
-        let decodedToken: { sub: string };
+        let userId: string;
         try {
-            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY || '', {
-                algorithms: ['RS256']
-            }) as { sub: string };
+            const publicKey = await getPublicKey();
+            const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
+            userId = sanitizeHtml(decoded.sub);
         } catch (error) {
-            console.error('Token verification failed:', error);
-            return json({ error: 'Invalid token' }, { status: 401 });
+            if (error instanceof jwt.TokenExpiredError) {
+                return json({ success: false, error: 'Token expired', reason: 'token_expired' }, { status: 401 });
+            }
+            return json({ success: false, error: `Invalid token: ${(error as Error).message}` }, { status: 401 });
         }
 
-        const userId = sanitizeHtml(decodedToken.sub);
         const reportId = sanitizeHtml(params.id || '');
-
         const parsedReportId = parseInt(reportId, 10);
         if (isNaN(parsedReportId) || parsedReportId <= 0) {
-            return json({ error: 'Invalid report ID' }, { status: 400 });
+            return json({ success: false, error: 'Invalid report ID' }, { status: 400 });
         }
 
-        const client = await pool.connect();
         try {
-            const checkQuery = `
+            const checkResult = await sql`
                 SELECT id
-                FROM probiotic_yogurt
-                WHERE id = $1 AND user_id = $2
+                FROM diarylab.probiotic_yogurt
+                WHERE id = ${parsedReportId} AND user_id = ${userId}
                 FOR UPDATE
             `;
-            const checkResult = await client.query(checkQuery, [parsedReportId, userId]);
 
-            if (!checkResult.rows.length) {
-                return json({ error: 'Report not found or unauthorized' }, { status: 404 });
+            if (!checkResult.length) {
+                return json({ success: false, error: 'Report not found or unauthorized' }, { status: 404 });
             }
 
-            const deleteQuery = `
-                DELETE FROM probiotic_yogurt
-                WHERE id = $1 AND user_id = $2
+            const deleteResult = await sql`
+                DELETE FROM diarylab.probiotic_yogurt
+                WHERE id = ${parsedReportId} AND user_id = ${userId}
                 RETURNING id
             `;
-            const deleteResult = await client.query(deleteQuery, [parsedReportId, userId]);
 
-            if (deleteResult.rowCount === 0) {
-                return json({ error: 'Report deletion failed' }, { status: 500 });
+            if (!deleteResult.length) {
+                return json({ success: false, error: 'Report deletion failed' }, { status: 500 });
             }
 
-            return json({ message: 'Report deleted successfully', id: parsedReportId }, { status: 200 });
-        } catch (error) {
-            console.error('Database error during deletion:', error);
-            return json({ error: 'Internal server error' }, { status: 500 });
-        } finally {
-            client.release(); 
+            return json({ success: true, message: 'Report deleted successfully', id: parsedReportId }, { status: 200 });
+        } catch (dbError) {
+            console.error('Database error during deletion:', dbError);
+            return json({ success: false, error: `Internal server error: ${(dbError as Error).message}` }, { status: 500 });
         }
     } catch (error) {
         console.error('Unexpected error:', error);
-        return json({ error: 'Internal server error' }, { status: 500 });
+        return json({ success: false, error: `Internal server error: ${(error as Error).message}` }, { status: 500 });
     }
 };

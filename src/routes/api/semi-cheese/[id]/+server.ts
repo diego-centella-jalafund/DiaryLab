@@ -1,144 +1,111 @@
 import { json } from '@sveltejs/kit';
-import pkg from 'pg';
-const { Pool } = pkg;
+import { neon } from '@neondatabase/serverless';
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
-import type { RequestHandler } from './$types';
 import sanitizeHtml from 'sanitize-html';
-
+import type { RequestHandler } from './$types';
 import 'dotenv/config';
-import { neon } from '@neondatabase/serverless';
 
-const pool = new Pool({
-    user: process.env.DB_USER || 'user',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'midb',
-    password: process.env.DB_PASSWORD || 'password',
-    port: Number(process.env.DB_PORT) || 5439,
-    options: process.env.DB_OPTIONS || '-c search_path=diarylab,public',
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
-});
 const connectionString: string = process.env.DATABASE_URL as string;
 const sql = neon(connectionString);
-(async () => {
-    try {
-        const response = await sql`SELECT version()`;
-        const { version } = response[0];
-        const client = await pool.connect();
-        console.log('Database connected successfully');
-        client.release();
-        return {
-            version,
-        };
-    } catch (error) {
-        console.error('Database connection failed:', error);
-    }
-})();
-async function getPublicKey() {
-    const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
-    const jwks = await response.json();
-    const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
-    return jwkToPem(jwk);
-}
-(async () => {
-    try {
-        const client = await pool.connect();
-        console.log('Database connected successfully');
-        client.release();
-    } catch (error) {
-        console.error('Database connection failed:', error);
-    }
-})();
 
-let KEYCLOAK_PUBLIC_KEY: string;
-(async () => {
-    KEYCLOAK_PUBLIC_KEY = await getPublicKey();
-})();
+async function getPublicKey(): Promise<string> {
+    try {
+        const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
+        if (!response.ok) throw new Error(`Failed to fetch JWKS: ${response.statusText}`);
+        const jwks = await response.json();
+        const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
+        if (!jwk) throw new Error('No signing key found');
+        return jwkToPem(jwk);
+    } catch (error) {
+        console.error('Failed to fetch public key:', error);
+        throw error;
+    }
+}
 
 export const GET: RequestHandler = async ({ request, params }) => {
     try {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader?.startsWith('Bearer ')) {
-            return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+            return json({ success: false, error: 'Missing or invalid Authorization header' }, { status: 401 });
         }
 
         const token = authHeader.replace('Bearer ', '');
-        let decodedToken: { sub: string };
+        let userId: string;
         try {
-            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY || '', {
-                algorithms: ['RS256']
-            }) as { sub: string };
+            const publicKey = await getPublicKey();
+            const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
+            userId = sanitizeHtml(decoded.sub);
         } catch (error) {
-            console.error('Token verification failed:', error);
-            return json({ error: 'Invalid token' }, { status: 401 });
+            if (error instanceof jwt.TokenExpiredError) {
+                return json({ success: false, error: 'Token expired', reason: 'token_expired' }, { status: 401 });
+            }
+            return json({ success: false, error: `Invalid token: ${(error as Error).message}` }, { status: 401 });
         }
 
-        const userId = sanitizeHtml(decodedToken.sub);
         const reportId = sanitizeHtml(params.id || '');
-
         const parsedReportId = parseInt(reportId, 10);
         if (isNaN(parsedReportId) || parsedReportId <= 0) {
-            return json({ error: 'Invalid report ID' }, { status: 400 });
+            return json({ success: false, error: 'Invalid report ID' }, { status: 400 });
         }
 
-        const client = await pool.connect();
         try {
-            const query = `
+            const result = await sql`
                 SELECT *
-                FROM semi_cheese
-                WHERE id = $1 AND user_id = $2
+                FROM diarylab.semi_cheese
+                WHERE id = ${parsedReportId} AND user_id = ${userId}
             `;
-            const result = await client.query(query, [parsedReportId, userId]);
 
-            if (!result.rows.length) {
-                return json({ error: 'Report not found' }, { status: 404 });
+            if (!result.length) {
+                return json({ success: false, error: 'Report not found' }, { status: 404 });
             }
 
-            const row = result.rows[0];
+            const row = result[0];
             const report = {
                 id: row.id,
-                samplingDate: row.sampling_date,
+                samplingDate: row.sampling_date ?? null,
                 userId: row.user_id,
-                analysisDate: row.analysis_date,
-                samplingTime: row.sampling_time,
-                responsibleAnalyst: row.responsible_analyst,
-                sampleNumber: row.sample_number,
+                analysisDate: row.analysis_date ?? null,
+                samplingTime: row.sampling_time ?? null,
+                responsibleAnalyst: row.responsible_analyst ?? null,
+                sampleNumber: row.sample_number ?? null,
                 production: {
-                    batch: row.production_batch,
-                    date: row.production_date,
-                    expirationDate: row.expiration_date,
-                    temperature: row.product_temperature,
-                    coldChamberTemperature: row.cold_chamber_temperature,
-                    netContent: row.net_content
+                    batch: row.production_batch ?? null,
+                    date: row.production_date ?? null,
+                    expirationDate: row.expiration_date ?? null,
+                    temperature: row.product_temperature ?? null,
+                    coldChamberTemperature: row.cold_chamber_temperature ?? null,
+                    netContent: row.net_content ?? null,
                 },
                 measurements: {
-                    fatContent: row.fat_content,
-                    phAcidity: row.ph_acidity,
-                    phTemperature: row.ph_temperature,
-                    color: row.color,
-                    odor: row.odor,
-                    flavor: row.flavor,
-                    appearance: row.appearance
+                    fatContent: row.fat_content ?? null,
+                    phAcidity: row.ph_acidity ?? null,
+                    phTemperature: row.ph_temperature ?? null,
+                    color: row.color ?? null,
+                    odor: row.odor ?? null,
+                    flavor: row.flavor ?? null,
+                    appearance: row.appearance ?? null,
                 },
                 bacteriological: {
-                    quality: row.bacteriological_quality,
-                    totalMesophilicCount: row.total_mesophilic_count,
-                    totalColiformCount: row.total_coliform_count,
-                    fecalColiformCount: row.fecal_coliform_count,
-                    sporeFormingBacteria: row.spore_forming_bacteria,
-                    escherichiaColi: row.escherichia_coli,
-                    salmonellaDetection: row.salmonella_detection
+                    quality: row.bacteriological_quality ?? null,
+                    totalMesophilicCount: row.total_mesophilic_count ?? null,
+                    totalColiformCount: row.total_coliform_count ?? null,
+                    fecalColiformCount: row.fecal_coliform_count ?? null,
+                    sporeFormingBacteria: row.spore_forming_bacteria ?? null,
+                    escherichiaColi: row.escherichia_coli ?? null,
+                    salmonellaDetection: row.salmonella_detection ?? null,
                 },
-                createdAt: row.created_at
+                createdAt: row.created_at ?? null,
             };
 
-            return json(report, { status: 200 });
-        } finally {
-            client.release();
+            return json({ success: true, data: report }, { status: 200 });
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            return json({ success: false, error: `Database error: ${(dbError as Error).message}` }, { status: 500 });
         }
     } catch (error) {
-        console.error('Server error:', error);
-        return json({ error: 'Internal server error' }, { status: 500 });
+        console.error('Unexpected error:', error);
+        return json({ success: false, error: `Internal server error: ${(error as Error).message}` }, { status: 500 });
     }
 };
 
@@ -146,104 +113,77 @@ export const PUT: RequestHandler = async ({ request, params }) => {
     try {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader?.startsWith('Bearer ')) {
-            return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+            return json({ success: false, error: 'Missing or invalid Authorization header' }, { status: 401 });
         }
 
         const token = authHeader.replace('Bearer ', '');
-        let decodedToken: { sub: string };
+        let userId: string;
         try {
-            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY || '', {
-                algorithms: ['RS256']
-            }) as { sub: string };
+            const publicKey = await getPublicKey();
+            const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
+            userId = sanitizeHtml(decoded.sub);
         } catch (error) {
-            console.error('Token verification failed:', error);
-            return json({ error: 'Invalid token' }, { status: 401 });
+            if (error instanceof jwt.TokenExpiredError) {
+                return json({ success: false, error: 'Token expired', reason: 'token_expired' }, { status: 401 });
+            }
+            return json({ success: false, error: `Invalid token: ${(error as Error).message}` }, { status: 401 });
         }
 
-        const userId = sanitizeHtml(decodedToken.sub);
         const reportId = sanitizeHtml(params.id || '');
-
         const parsedReportId = parseInt(reportId, 10);
         if (isNaN(parsedReportId) || parsedReportId <= 0) {
-            return json({ error: 'Invalid report ID' }, { status: 400 });
+            return json({ success: false, error: 'Invalid report ID' }, { status: 400 });
         }
 
         const formData = await request.json();
+        if (!formData || typeof formData !== 'object') {
+            return json({ success: false, error: 'Invalid request body' }, { status: 400 });
+        }
 
-        const query = `
-            UPDATE semi_cheese
-            SET sampling_date = $1,
-                analysis_date = $2,
-                sampling_time = $3,
-                responsible_analyst = $4,
-                sample_number = $5,
-                production_batch = $6,
-                production_date = $7,
-                expiration_date = $8,
-                product_temperature = $9,
-                cold_chamber_temperature = $10,
-                net_content = $11,
-                fat_content = $12,
-                ph_acidity = $13,
-                ph_temperature = $14,
-                color = $15,
-                odor = $16,
-                flavor = $17,
-                appearance = $18,
-                bacteriological_quality = $19,
-                total_mesophilic_count = $20,
-                total_coliform_count = $21,
-                fecal_coliform_count = $22,
-                spore_forming_bacteria = $23,
-                escherichia_coli = $24,
-                salmonella_detection = $25
-            WHERE id = $26 AND user_id = $27
-            RETURNING *;
-        `;
-
-        const values = [
-            formData.date || null,
-            formData.analysisDate || null,
-            formData.samplingTime || null,
-            formData.responsibleAnalyst || null,
-            formData.sampleNumber || null,
-            formData.productionLot || null,
-            formData.productionDate || null,
-            formData.expirationDate || null,
-            formData.temperature ? parseFloat(formData.temperature) : 0,
-            formData.coldChamber ? parseFloat(formData.coldChamber) : 0,
-            formData.netContent ? parseFloat(formData.netContent) : 0,
-            formData.fatContent ? parseFloat(formData.fatContent) : 0,
-            formData.phAcidity ? parseFloat(formData.phAcidity) : 0,
-            formData.phTemperature ? parseFloat(formData.phTemperature) : 0,
-            formData.color || '',
-            formData.odor || '',
-            formData.taste || '',
-            formData.appearance || '',
-            formData.bacteriologicalQuality || '',
-            formData.totalMesophilicCount ? parseFloat(formData.totalMesophilicCount) : 0,
-            formData.totalColiformCount ? parseFloat(formData.totalColiformCount) : 0,
-            formData.fecalColiformCount ? parseFloat(formData.fecalColiformCount) : 0,
-            formData.sporeFormingBacteria ? parseFloat(formData.sporeFormingBacteria) : 0,
-            formData.escherichiaColi || false,
-            formData.salmonellaDetection || false,
-            parsedReportId,
-            userId
-        ];
-
-        const client = await pool.connect();
         try {
-            const result = await client.query(query, values);
-            if (result.rowCount === 0) {
-                return json({ error: 'Report not found or unauthorized' }, { status: 404 });
+            const result = await sql`
+                UPDATE diarylab.semi_cheese
+                SET sampling_date = ${formData.date || null},
+                    analysis_date = ${formData.analysisDate || null},
+                    sampling_time = ${formData.samplingTime || null},
+                    responsible_analyst = ${formData.responsibleAnalyst || null},
+                    sample_number = ${formData.sampleNumber || null},
+                    production_batch = ${formData.productionLot || null},
+                    production_date = ${formData.productionDate || null},
+                    expiration_date = ${formData.expirationDate || null},
+                    product_temperature = ${formData.temperature ? parseFloat(formData.temperature) : null},
+                    cold_chamber_temperature = ${formData.coldChamber ? parseFloat(formData.coldChamber) : null},
+                    net_content = ${formData.netContent ? parseFloat(formData.netContent) : null},
+                    fat_content = ${formData.fatContent ? parseFloat(formData.fatContent) : null},
+                    ph_acidity = ${formData.phAcidity ? parseFloat(formData.phAcidity) : null},
+                    ph_temperature = ${formData.phTemperature ? parseFloat(formData.phTemperature) : null},
+                    color = ${formData.color || null},
+                    odor = ${formData.odor || null},
+                    flavor = ${formData.taste || null},
+                    appearance = ${formData.appearance || null},
+                    bacteriological_quality = ${formData.bacteriologicalQuality || null},
+                    total_mesophilic_count = ${formData.totalMesophilicCount ? parseFloat(formData.totalMesophilicCount) : null},
+                    total_coliform_count = ${formData.totalColiformCount ? parseFloat(formData.totalColiformCount) : null},
+                    fecal_coliform_count = ${formData.fecalColiformCount ? parseFloat(formData.fecalColiformCount) : null},
+                    spore_forming_bacteria = ${formData.sporeFormingBacteria ? parseFloat(formData.sporeFormingBacteria) : null},
+                    escherichia_coli = ${formData.escherichiaColi || null},
+                    salmonella_detection = ${formData.salmonellaDetection || null}
+                WHERE id = ${parsedReportId} AND user_id = ${userId}
+                RETURNING *
+            `;
+
+            if (!result.length) {
+                return json({ success: false, error: 'Report not found or unauthorized' }, { status: 404 });
             }
-            return json({ message: 'Data updated successfully', data: result.rows[0] }, { status: 200 });
-        } finally {
-            client.release();
+
+            return json({ success: true, message: 'Data updated successfully', data: result[0] }, { status: 200 });
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            return json({ success: false, error: `Database error: ${(dbError as Error).message}` }, { status: 500 });
         }
     } catch (error) {
-        console.error('Server error:', error);
-        return json({ error: 'Internal server error' }, { status: 500 });
+        console.error('Unexpected error:', error);
+        return json({ success: false, error: `Internal server error: ${(error as Error).message}` }, { status: 500 });
     }
 };
 
@@ -251,62 +191,57 @@ export const DELETE: RequestHandler = async ({ request, params }) => {
     try {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader?.startsWith('Bearer ')) {
-            return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+            return json({ success: false, error: 'Missing or invalid Authorization header' }, { status: 401 });
         }
 
         const token = authHeader.replace('Bearer ', '');
-        let decodedToken: { sub: string };
+        let userId: string;
         try {
-            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY || '', {
-                algorithms: ['RS256']
-            }) as { sub: string };
+            const publicKey = await getPublicKey();
+            const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
+            userId = sanitizeHtml(decoded.sub);
         } catch (error) {
-            console.error('Token verification failed:', error);
-            return json({ error: 'Invalid token' }, { status: 401 });
+            if (error instanceof jwt.TokenExpiredError) {
+                return json({ success: false, error: 'Token expired', reason: 'token_expired' }, { status: 401 });
+            }
+            return json({ success: false, error: `Invalid token: ${(error as Error).message}` }, { status: 401 });
         }
 
-        const userId = sanitizeHtml(decodedToken.sub);
         const reportId = sanitizeHtml(params.id || '');
-
         const parsedReportId = parseInt(reportId, 10);
         if (isNaN(parsedReportId) || parsedReportId <= 0) {
-            return json({ error: 'Invalid report ID' }, { status: 400 });
+            return json({ success: false, error: 'Invalid report ID' }, { status: 400 });
         }
 
-        const client = await pool.connect();
         try {
-            const checkQuery = `
+            const checkResult = await sql`
                 SELECT id
-                FROM semi_cheese
-                WHERE id = $1 AND user_id = $2
+                FROM diarylab.semi_cheese
+                WHERE id = ${parsedReportId} AND user_id = ${userId}
                 FOR UPDATE
             `;
-            const checkResult = await client.query(checkQuery, [parsedReportId, userId]);
 
-            if (!checkResult.rows.length) {
-                return json({ error: 'Report not found or unauthorized' }, { status: 404 });
+            if (!checkResult.length) {
+                return json({ success: false, error: 'Report not found or unauthorized' }, { status: 404 });
             }
 
-            const deleteQuery = `
-                DELETE FROM semi_cheese
-                WHERE id = $1 AND user_id = $2
+            const deleteResult = await sql`
+                DELETE FROM diarylab.semi_cheese
+                WHERE id = ${parsedReportId} AND user_id = ${userId}
                 RETURNING id
             `;
-            const deleteResult = await client.query(deleteQuery, [parsedReportId, userId]);
 
-            if (deleteResult.rowCount === 0) {
-                return json({ error: 'Report deletion failed' }, { status: 500 });
+            if (!deleteResult.length) {
+                return json({ success: false, error: 'Report deletion failed' }, { status: 500 });
             }
 
-            return json({ message: 'Report deleted successfully', id: parsedReportId }, { status: 200 });
-        } catch (error) {
-            console.error('Database error during deletion:', error);
-            return json({ error: 'Internal server error' }, { status: 500 });
-        } finally {
-            client.release(); 
+            return json({ success: true, message: 'Report deleted successfully', id: parsedReportId }, { status: 200 });
+        } catch (dbError) {
+            console.error('Database error during deletion:', dbError);
+            return json({ success: false, error: `Internal server error: ${(dbError as Error).message}` }, { status: 500 });
         }
     } catch (error) {
         console.error('Unexpected error:', error);
-        return json({ error: 'Internal server error' }, { status: 500 });
+        return json({ success: false, error: `Internal server error: ${(error as Error).message}` }, { status: 500 });
     }
 };

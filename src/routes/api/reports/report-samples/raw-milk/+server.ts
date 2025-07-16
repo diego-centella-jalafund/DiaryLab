@@ -1,128 +1,88 @@
 import { json } from '@sveltejs/kit';
-import pkg from 'pg';
+import { neon } from '@neondatabase/serverless';
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
-const { Pool } = pkg;
 import sanitizeHtml from 'sanitize-html';
 import 'dotenv/config';
-import { neon } from '@neondatabase/serverless';
 
-const pool = new Pool({
-    user: process.env.DB_USER || 'user',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'midb',
-    password: process.env.DB_PASSWORD || 'password',
-    port: Number(process.env.DB_PORT) || 5439,
-    options: process.env.DB_OPTIONS || '-c search_path=diarylab,public',
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
-});
 const connectionString: string = process.env.DATABASE_URL as string;
 const sql = neon(connectionString);
-(async () => {
+
+async function getPublicKey(): Promise<string> {
     try {
-        const response = await sql`SELECT version()`;
-        const { version } = response[0];
-        const client = await pool.connect();
-        console.log('Database connected successfully');
-        client.release();
-        return {
-            version,
-        };
+        const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
+        if (!response.ok) throw new Error(`Failed to fetch JWKS: ${response.statusText}`);
+        const jwks = await response.json();
+        const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
+        if (!jwk) throw new Error('No signing key found');
+        return jwkToPem(jwk);
     } catch (error) {
-        console.error('Database connection failed:', error);
+        console.error('Failed to fetch public key:', error);
+        throw error;
     }
-})();
-async function getPublicKey() {
-    const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
-    const jwks = await response.json();
-    const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
-    return jwkToPem(jwk);
 }
 
-let KEYCLOAK_PUBLIC_KEY: string | null = null;
-(async () => {
-	try {
-		KEYCLOAK_PUBLIC_KEY = await getPublicKey();
-		console.log('Keycloak public key fetched successfully');
-	} catch (error) {
-		console.error('Failed to initialize Keycloak public key:', error);
-	}
-})();
-
 export async function GET({ request, url }) {
-	try {
-		const authHeader = request.headers.get('authorization');
-		if (!authHeader || !authHeader.startsWith('Bearer ')) {
-			return json({ success: false, error: 'No token provided' }, { status: 401 });
-		}
+    try {
+        const authHeader = request.headers.get('authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return json({ success: false, error: 'No token provided' }, { status: 401 });
+        }
 
-		const token = authHeader.split(' ')[1];
+        const token = authHeader.split(' ')[1];
+        let userId: string;
+        try {
+            const publicKey = await getPublicKey();
+            const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
+            userId = sanitizeHtml(decoded.sub);
+        } catch (error) {
+            if (error instanceof jwt.TokenExpiredError) {
+                return json({ success: false, error: 'Token expired', reason: 'token_expired' }, { status: 401 });
+            }
+            return json({ success: false, error: `Invalid token: ${(error as Error).message}` }, { status: 401 });
+        }
 
-		let userId;
-		try {
-			const decoded = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as {
-				sub: string;
-			};
-			userId = decoded.sub;
-		} catch (error) {
-			if (error.name === 'TokenExpiredError') {
-				return json(
-					{ success: false, error: 'Token expired', reason: 'token_expired' },
-					{ status: 401 }
-				);
-			}
-			return json({ success: false, error: 'Invalid token: ' + error.message }, { status: 401 });
-		}
+        if (!userId) {
+            return json({ success: false, error: 'User not identified' }, { status: 401 });
+        }
 
-		if (!userId) {
-			return json({ success: false, error: 'User not identified' }, { status: 401 });
-		}
+        const startDate = sanitizeHtml(url.searchParams.get('startDate') || '');
+        const endDate = sanitizeHtml(url.searchParams.get('endDate') || '');
+        if (!startDate || !endDate) {
+            return json({ success: false, error: 'Missing startDate or endDate' }, { status: 400 });
+        }
 
-		const startDate = sanitizeHtml(url.searchParams.get('startDate') || '');
-		const endDate = sanitizeHtml(url.searchParams.get('endDate') || '');
-		if (!startDate || !endDate) {
-			return json({ error: 'Missing startDate or endDate' }, { status: 400 });
-		}
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+            return json({ success: false, error: 'Invalid date format' }, { status: 400 });
+        }
 
-		const startDateObj = new Date(startDate);
-		const endDateObj = new Date(endDate);
-		if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-			return json({ error: 'Invalid date format' }, { status: 400 });
-		}
+        try {
+            const result = await sql`
+                SELECT date, titratable_acidity_evening, titratable_acidity_early_morning, titratable_acidity_gmp2
+                FROM diarylab.raw_milk
+                WHERE user_id = ${userId}
+                  AND date BETWEEN ${startDateObj} AND ${endDateObj}
+                ORDER BY date ASC
+            `;
+            
+            const transformedData = result.map((row: any) => ({
+                date: row.date,
+                titratable_acidity: {
+                    evening: row.titratable_acidity_evening ?? null,
+                    earlyMorning: row.titratable_acidity_early_morning ?? null,
+                    gmp2: row.titratable_acidity_gmp2 ?? null,
+                },
+            }));
 
-		const queryParams: any[] = [userId, startDateObj, endDateObj];
-		const query = `
-            SELECT date, titratable_acidity_evening, titratable_acidity_early_morning, titratable_acidity_gmp2
-            FROM raw_milk
-            WHERE user_id = $1
-            AND date BETWEEN $2 AND $3
-            ORDER BY date ASC
-        `;
-
-		const client = await pool.connect();
-		try {
-			const result = await client.query(query, queryParams);
-			const transformedData = result.rows.map((row) => ({
-				date: row.date,
-				titratable_acidity: {
-					evening: row.titratable_acidity_evening,
-					earlyMorning: row.titratable_acidity_early_morning,
-					gmp2: row.titratable_acidity_gmp2
-				}
-			}));
-
-			return json({ success: true, data: transformedData }, { status: 200 });
-		} catch (dbError) {
-			console.error('Database error:', dbError);
-			return json({ success: false, error: 'Database error: ' + dbError.message }, { status: 500 });
-		} finally {
-			client.release();
-		}
-	} catch (error) {
-		console.error('Unexpected error:', error);
-		return json(
-			{ success: false, error: 'Internal server error: ' + error.message },
-			{ status: 500 }
-		);
-	}
+            return json({ success: true, data: transformedData }, { status: 200 });
+        } catch (dbError) {
+            console.error('Database error:', dbError);
+            return json({ success: false, error: `Database error: ${(dbError as Error).message}` }, { status: 500 });
+        }
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        return json({ success: false, error: `Internal server error: ${(error as Error).message}` }, { status: 500 });
+    }
 }

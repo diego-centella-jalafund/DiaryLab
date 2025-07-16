@@ -1,49 +1,27 @@
 import { json } from '@sveltejs/kit';
-import pkg from 'pg';
-const { Pool } = pkg;
+import { neon } from '@neondatabase/serverless';
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
 import type { RequestHandler } from './$types';
 import sanitizeHtml from 'sanitize-html';
 import 'dotenv/config';
-import { neon } from '@neondatabase/serverless';
 
-const pool = new Pool({
-    user: process.env.DB_USER || 'user',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'midb',
-    password: process.env.DB_PASSWORD || 'password',
-    port: Number(process.env.DB_PORT) || 5439,
-    options: process.env.DB_OPTIONS || '-c search_path=diarylab,public',
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
-});
 const connectionString: string = process.env.DATABASE_URL as string;
 const sql = neon(connectionString);
-(async () => {
-    try {
-        const response = await sql`SELECT version()`;
-        const { version } = response[0];
-        const client = await pool.connect();
-        console.log('Database connected successfully');
-        client.release();
-        return {
-            version,
-        };
-    } catch (error) {
-        console.error('Database connection failed:', error);
-    }
-})();
-async function getPublicKey() {
-    const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
-    const jwks = await response.json();
-    const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
-    return jwkToPem(jwk);
-}
 
-let KEYCLOAK_PUBLIC_KEY: string;
-(async () => {
-    KEYCLOAK_PUBLIC_KEY = await getPublicKey();
-})();
+async function getPublicKey() {
+    try {
+        const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
+        if (!response.ok) throw new Error(`Failed to fetch JWKS: ${response.statusText}`);
+        const jwks = await response.json();
+        const jwk = jwks.keys.find((key: any) => key.use === 'sig' && key.kty === 'RSA');
+        if (!jwk) throw new Error('No signing key found');
+        return jwkToPem(jwk);
+    } catch (error) {
+        console.error('Failed to fetch public key:', error);
+        throw error;
+    }
+}
 
 export const POST: RequestHandler = async ({ request }) => {
     try {
@@ -53,18 +31,49 @@ export const POST: RequestHandler = async ({ request }) => {
         }
 
         const token = authHeader.replace('Bearer ', '');
-        let decodedToken;
+        let decodedToken: { sub: string };
         try {
-            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as { sub: string };
+            const publicKey = await getPublicKey();
+            decodedToken = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
         } catch (error) {
             console.error('Token verification failed:', error);
             return json({ error: 'Invalid token', reason: 'token_invalid' }, { status: 401 });
         }
 
+        const userId = sanitizeHtml(decodedToken.sub);
         const formData = await request.json();
+        const sanitizedFormData = {
+            date: formData.date ? new Date(formData.date) : null,
+            analysisDate: formData.analysisDate ? new Date(formData.analysisDate) : null,
+            samplingTime: formData.samplingTime || null,
+            responsibleAnalyst: formData.responsibleAnalyst ? sanitizeHtml(formData.responsibleAnalyst) : null,
+            sampleNumber: formData.sampleNumber ? sanitizeHtml(formData.sampleNumber) : null,
+            productionLot: formData.productionLot ? sanitizeHtml(formData.productionLot) : null,
+            productionDate: formData.productionDate ? new Date(formData.productionDate) : null,
+            expirationDate: formData.expirationDate ? new Date(formData.expirationDate) : null,
+            temperature: formData.temperature ? parseFloat(formData.temperature) : 0,
+            coldChamber: formData.coldChamber ? parseFloat(formData.coldChamber) : 0,
+            netContent: formData.netContent ? parseFloat(formData.netContent) : 0,
+            fatContent: formData.fatContent ? parseFloat(formData.fatContent) : 0,
+            acidityPercent: formData.acidityPercent ? parseFloat(formData.acidityPercent) : 0,
+            phAcidity: formData.phAcidity ? parseFloat(formData.phAcidity) : 0,
+            phTemperature: formData.phTemperature ? parseFloat(formData.phTemperature) : 0,
+            meltingPoint: formData.meltingPoint ? parseFloat(formData.meltingPoint) : 0,
+            color: formData.color ? sanitizeHtml(formData.color) : '',
+            odor: formData.odor ? sanitizeHtml(formData.odor) : '',
+            taste: formData.taste ? sanitizeHtml(formData.taste) : '',
+            texture: formData.texture ? sanitizeHtml(formData.texture) : '',
+            bacteriologicalQuality: formData.bacteriologicalQuality ? sanitizeHtml(formData.bacteriologicalQuality) : '',
+            totalMesophilicCount: formData.totalMesophilicCount ? parseFloat(formData.totalMesophilicCount) : 0,
+            totalColiformCount: formData.totalColiformCount ? parseFloat(formData.totalColiformCount) : 0,
+            moldYeastCount: formData.moldYeastCount ? parseFloat(formData.moldYeastCount) : 0,
+            escherichiaColi: formData.escherichiaColi || false,
+            salmonellaDetection: formData.salmonellaDetection || false
+        };
+      
 
-        const query = `
-            INSERT INTO butter (
+        const result = await sql`
+            INSERT INTO diarylab.butter (
                 sampling_date, analysis_date, sampling_time, responsible_analyst, sample_number,
                 production_batch, production_date, expiration_date, product_temperature,
                 cold_chamber_temperature, net_content, fat_content, acidity_percent, ph_acidity,
@@ -72,48 +81,38 @@ export const POST: RequestHandler = async ({ request }) => {
                 bacteriological_quality, total_mesophilic_count, total_coliform_count, mold_yeast_count,
                 escherichia_coli, salmonella_detection, user_id
             ) VALUES (
-                $1, $2, $3, $4, $5,
-                $6, $7, $8, $9,
-                $10, $11, $12, $13, $14,
-                $15, $16, $17, $18, $19, $20,
-                $21, $22, $23, $24,
-                $25, $26, $27
+                ${sanitizedFormData.date},
+                ${sanitizedFormData.analysisDate},
+                ${sanitizedFormData.samplingTime},
+                ${sanitizedFormData.responsibleAnalyst},
+                ${sanitizedFormData.sampleNumber},
+                ${sanitizedFormData.productionLot},
+                ${sanitizedFormData.productionDate},
+                ${sanitizedFormData.expirationDate},
+                ${sanitizedFormData.temperature},
+                ${sanitizedFormData.coldChamber},
+                ${sanitizedFormData.netContent},
+                ${sanitizedFormData.fatContent},
+                ${sanitizedFormData.acidityPercent},
+                ${sanitizedFormData.phAcidity},
+                ${sanitizedFormData.phTemperature},
+                ${sanitizedFormData.meltingPoint},
+                ${sanitizedFormData.color},
+                ${sanitizedFormData.odor},
+                ${sanitizedFormData.taste},
+                ${sanitizedFormData.texture},
+                ${sanitizedFormData.bacteriologicalQuality},
+                ${sanitizedFormData.totalMesophilicCount},
+                ${sanitizedFormData.totalColiformCount},
+                ${sanitizedFormData.moldYeastCount},
+                ${sanitizedFormData.escherichiaColi},
+                ${sanitizedFormData.salmonellaDetection},
+                ${userId}
             )
-            RETURNING id;
+            RETURNING id
         `;
 
-        const values = [
-            formData.date || null,
-            formData.analysisDate || null,
-            formData.samplingTime || null,
-            formData.responsibleAnalyst || null,
-            formData.sampleNumber || null,
-            formData.productionLot || null,
-            formData.productionDate || null,
-            formData.expirationDate || null,
-            formData.temperature ? parseFloat(formData.temperature) : 0,
-            formData.coldChamber ? parseFloat(formData.coldChamber) : 0,
-            formData.netContent ? parseFloat(formData.netContent) : 0,
-            formData.fatContent ? parseFloat(formData.fatContent) : 0,
-            formData.acidityPercent ? parseFloat(formData.acidityPercent) : 0,
-            formData.phAcidity ? parseFloat(formData.phAcidity) : 0,
-            formData.phTemperature ? parseFloat(formData.phTemperature) : 0,
-            formData.meltingPoint ? parseFloat(formData.meltingPoint) : 0,
-            formData.color || '',
-            formData.odor || '',
-            formData.taste || '',
-            formData.texture || '',
-            formData.bacteriologicalQuality || '',
-            formData.totalMesophilicCount ? parseFloat(formData.totalMesophilicCount) : 0,
-            formData.totalColiformCount ? parseFloat(formData.totalColiformCount) : 0,
-            formData.moldYeastCount ? parseFloat(formData.moldYeastCount) : 0,
-            formData.escherichiaColi || false,
-            formData.salmonellaDetection || false,
-            decodedToken.sub
-        ];
-
-        const result = await pool.query(query, values);
-        return json({ message: 'Data uploaded successfully', id: result.rows[0].id }, { status: 200 });
+        return json({ message: 'Data uploaded successfully', id: result[0].id }, { status: 200 });
     } catch (error) {
         console.error('Error uploading data:', error);
         return json({ error: 'Error uploading data', details: error.message }, { status: 500 });
@@ -130,14 +129,14 @@ export const GET: RequestHandler = async ({ request, url }) => {
         const token = authHeader.replace('Bearer ', '');
         let decodedToken: { sub: string };
         try {
-            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as { sub: string };
+            const publicKey = await getPublicKey();
+            decodedToken = jwt.verify(token, publicKey, { algorithms: ['RS256'] }) as { sub: string };
         } catch (error) {
             console.error('Token verification failed:', error);
             return json({ error: 'Invalid token' }, { status: 401 });
         }
 
         const userId = sanitizeHtml(decodedToken.sub);
-
         const startDate = sanitizeHtml(url.searchParams.get('startDate') || '');
         const endDate = sanitizeHtml(url.searchParams.get('endDate') || '');
 
@@ -151,34 +150,24 @@ export const GET: RequestHandler = async ({ request, url }) => {
             return json({ error: 'Invalid date format' }, { status: 400 });
         }
 
-        const client = await pool.connect();
-        try {
-            const query = `
-                SELECT *
-                FROM butter
-                WHERE user_id = $1
-                  AND sampling_date BETWEEN $2 AND $3
-                ORDER BY sampling_date ASC
-            `;
-            const result = await client.query(query, [userId, startDate, endDate]);
-            console.log('Query result rows:', result.rows);
+        const result = await sql`
+            SELECT id, sampling_date, user_id, sample_number
+            FROM butter
+            WHERE user_id = ${userId}
+              AND sampling_date BETWEEN ${startDateObj} AND ${endDateObj}
+            ORDER BY sampling_date ASC
+        `;
 
-            const reports = result.rows.map((row) => ({
-                id: row.id,
-                date: row.sampling_date,
-                userId: row.user_id,
-                sampleNumber: row.sample_number
-            }));
+        const reports = result.map((row: any) => ({
+            id: row.id,
+            date: row.sampling_date,
+            userId: row.user_id,
+            sampleNumber: row.sample_number
+        }));
 
-            return json({ reports }, { status: 200 });
-        } catch (error) {
-            console.error('Database query error (reports list):', error);
-            return json({ error: 'Failed to fetch reports' }, { status: 500 });
-        } finally {
-            client.release();
-        }
+        return json({ reports }, { status: 200 });
     } catch (error) {
-        console.error('Server error:', error);
-        return json({ error: 'Internal server error' }, { status: 500 });
+        console.error('Database query error (reports list):', error);
+        return json({ error: 'Failed to fetch reports', details: error.message }, { status: 500 });
     }
 };
