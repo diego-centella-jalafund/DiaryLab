@@ -40,7 +40,7 @@
 
 	onMount(async () => {
 		const auth = new Auth({
-			url: 'http://localhost:8080',
+			url: 'https://keycloak-24-0-1-z3qr.onrender.com',
 			realm: 'diarylab',
 			clientId: 'sveltekit'
 		});

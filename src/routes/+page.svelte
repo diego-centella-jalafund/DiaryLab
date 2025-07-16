@@ -34,7 +34,7 @@
                     
                 </p>
                 <ul class="features-list">
-                    <li><span class="checkmark">✔</span> Software seguro de base de datos/li>
+                    <li><span class="checkmark">✔</span> Software seguro de base de datos</li>
                     <li><span class="checkmark">✔</span> Adaptable a pequeños laboratorios</li>
                     <li><span class="checkmark">✔</span> Control de calidad preciso</li>
                     <li><span class="checkmark">✔</span> Sample Manager</li>
