@@ -61,40 +61,40 @@ export const GET: RequestHandler = async ({ request, params }) => {
         const row = result[0];
         const report = {
             id: row.id,
-            samplingDate: row.sampling_date,
+            samplingDate: row.sampling_date?? null,
             userId: row.user_id,
-            analysisDate: row.analysis_date,
-            samplingTime: row.sampling_time,
-            responsibleAnalyst: row.responsible_analyst,
-            sampleNumber: row.sample_number,
+            analysisDate: row.analysis_date?? null,
+            samplingTime: row.sampling_time ?? null,
+            responsibleAnalyst: row.responsible_analyst?? null,
+            sampleNumber: row.sample_number?? null,
             production: {
-                batch: row.production_batch,
-                date: row.production_date,
-                expirationDate: row.expiration_date,
-                temperature: row.product_temperature,
-                coldChamberTemperature: row.cold_chamber_temperature,
-                netContent: row.net_content
+                batch: row.production_batch?? null,
+                date: row.production_date?? null,
+                expirationDate: row.expiration_date?? null,
+                temperature: row.product_temperature?? null,
+                coldChamberTemperature: row.cold_chamber_temperature?? null,
+                netContent: row.net_content?? null,
             },
             measurements: {
-                fatContent: row.fat_content,
-                acidityPercent: row.acidity_percent,
-                phAcidity: row.ph_acidity,
-                phTemperature: row.ph_temperature,
-                meltingPoint: row.melting_point,
-                color: row.color,
-                odor: row.odor,
-                flavor: row.flavor,
-                texture: row.texture
+                fatContent: row.fat_content?? null,
+                acidityPercent: row.acidity_percent?? null,
+                phAcidity: row.ph_acidity?? null,
+                phTemperature: row.ph_temperature?? null,
+                meltingPoint: row.melting_point?? null,
+                color: row.color?? null,
+                odor: row.odor?? null,
+                flavor: row.flavor?? null,
+                texture: row.texture?? null,
             },
             bacteriological: {
-                quality: row.bacteriological_quality,
-                totalMesophilicCount: row.total_mesophilic_count,
-                totalColiformCount: row.total_coliform_count,
-                moldYeastCount: row.mold_yeast_count,
-                escherichiaColi: row.escherichia_coli,
-                salmonellaDetection: row.salmonella_detection
+                quality: row.bacteriological_quality?? null,
+                totalMesophilicCount: row.total_mesophilic_count?? null,
+                totalColiformCount: row.total_coliform_count?? null,
+                moldYeastCount: row.mold_yeast_count?? null,
+                escherichiaColi: row.escherichia_coli?? null,
+                salmonellaDetection: row.salmonella_detection?? null,
             },
-            createdAt: row.created_at
+            createdAt: row.created_at ?? null,
         };
 
         return json(report, { status: 200 });

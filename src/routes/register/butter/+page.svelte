@@ -268,7 +268,7 @@
                                 <td>Materia Grasa</td>
                                 <td>%</td>
                                 <td><input type="number" step="0.1" bind:value={fatContent} /></td>
-                                <td>min 80</td>
+                                <td>min 80%</td>
                                 <td>Mét. Gerber</td>
                             </tr>
                             <tr>

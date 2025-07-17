@@ -126,36 +126,36 @@
 					error.set('Report not found');
 					return;
 				}
-				throw new Error(`Failed to fetch data: ${response.status} - ${result}`);
+				throw new Error(`Failed to fetch data: ${response.status} - ${result.data}`);
 			}
 
 			const result = await response.json();
-			report.set(result);
-			if (result) {
-				date = formatDateForInput(result.samplingDate || '');
-				analysisDate = formatDateForInput(result.analysisDate || '');
-				samplingTime = formatTimeForInput(result.samplingTime || '');
-				responsibleAnalyst = result.responsibleAnalyst || '';
-				sampleNumber = result.sampleNumber || '';
-				productionLot = result.production.batch || '';
-				productionDate = formatDateForInput(result.production.date || '');
-				expirationDate = formatDateForInput(result.production.expirationDate || '');
-				temperature = result.production.temperature || '';
-				coldChamber = result.production.coldChamberTemperature || '';
-				netContent = result.production.netContent || '';
-				fatContent = result.measurements.fatContent || '';
-				sng = result.measurements.sng || '';
-				ph20C = result.measurements.phAcidity || '';
-				titratableAcidity = result.measurements.titratableAcidity || '';
-				analysisTemperature = result.measurements.phTemperature || '';
-				color = result.measurements.color || '';
-				odor = result.measurements.odor || '';
-				taste = result.measurements.flavor || '';
-				appearance = result.measurements.appearance || '';
-				coliformCount = result.bacteriological.totalColiforms || '';
-				moldYeastCount = result.bacteriological.yeastMoldCount || '';
-				staphylococcusCount = result.bacteriological.escherichiaColi ? '1' : '0'; 
-				acinetobacterCount = result.bacteriological.fecalColiforms || '';
+			report.set(result.data);
+			if (result.data) {
+				date = formatDateForInput(result.data.samplingDate || '');
+				analysisDate = formatDateForInput(result.data.analysisDate || '');
+				samplingTime = formatTimeForInput(result.data.samplingTime || '');
+				responsibleAnalyst = result.data.responsibleAnalyst || '';
+				sampleNumber = result.data.sampleNumber || '';
+				productionLot = result.data.production.batch || '';
+				productionDate = formatDateForInput(result.data.production.date || '');
+				expirationDate = formatDateForInput(result.data.production.expirationDate || '');
+				temperature = result.data.production.temperature || '';
+				coldChamber = result.data.production.coldChamberTemperature || '';
+				netContent = result.data.production.netContent || '';
+				fatContent = result.data.measurements.fatContent || '';
+				sng = result.data.measurements.sng || '';
+				ph20C = result.data.measurements.phAcidity || '';
+				titratableAcidity = result.data.measurements.titratableAcidity || '';
+				analysisTemperature = result.data.measurements.phTemperature || '';
+				color = result.data.measurements.color || '';
+				odor = result.data.measurements.odor || '';
+				taste = result.data.measurements.flavor || '';
+				appearance = result.data.measurements.appearance || '';
+				coliformCount = result.data.bacteriological.totalColiforms || '';
+				moldYeastCount = result.data.bacteriological.yeastMoldCount || '';
+				staphylococcusCount = result.data.bacteriological.escherichiaColi ? '1' : '0'; 
+				acinetobacterCount = result.data.bacteriological.fecalColiforms || '';
 			}
 		} catch (err) {
 			console.error('Fetch error:', err);
@@ -242,19 +242,19 @@
 
 			if (response.ok) {
 				const result = await response.json();
-				console.log('Data updated successfully:', result);
-				alert(`Reporte actualizado con éxito!${result.data?.id ? ` ID ${result.data.id}` : ''}`);
+				console.log('Data updated successfully:', result.data);
+				alert(`Reporte actualizado con éxito!${result.data.data?.id ? ` ID ${result.data.data.id}` : ''}`);
 				await fetchReport();
 			} else {
 				const result = await response.json();
-				if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
+				if (response.status === 401 && result.data.reason === 'token_invalid' && retryCount < 1) {
 					const refreshed = await authInstance.refreshToken();
 					if (refreshed) {
 						return saveForm(retryCount + 1);
 					}
 				}
 				throw new Error(
-					`Fallo al actualizar datos: ${response.status} - ${result.message || result.error || response.statusText}`
+					`Fallo al actualizar datos: ${response.status} - ${result.data.message || result.data.error || response.statusText}`
 				);
 			}
 		} catch (err) {
@@ -316,14 +316,14 @@
 				goto('/register/yogurt-no-sugar');
 			} else {
 				const result = await response.json();
-				if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
+				if (response.status === 401 && result.data.reason === 'token_invalid' && retryCount < 1) {
 					const refreshed = await authInstance.refreshToken();
 					if (refreshed) {
 						return deleteReport(retryCount + 1);
 					}
 				}
 				throw new Error(
-					`Fallo al eliminar el reporte: ${response.status} - ${result.message || result.error || response.statusText}`
+					`Fallo al eliminar el reporte: ${response.status} - ${result.data.message || result.data.error || response.statusText}`
 				);
 			}
 		} catch (err) {
@@ -393,7 +393,7 @@
 
 				<div class="section">
 					<h2>Análisis Físicoquímico</h2>
-					<table class="results-table">
+					<table class="result.datas-table">
 						<thead>
 							<tr>
 								<th>Parámetro</th>
@@ -445,7 +445,7 @@
 
 				<div class="section">
 					<h2>Análisis Organoléptico</h2>
-					<table class="results-table">
+					<table class="result.datas-table">
 						<thead>
 							<tr>
 								<th>Parámetro</th>
@@ -475,7 +475,7 @@
 
 				<div class="section">
 					<h2>Análisis Microbiológico</h2>
-					<table class="results-table">
+					<table class="result.datas-table">
 						<thead>
 							<tr>
 								<th>Parámetro</th>

@@ -175,10 +175,10 @@ export const PUT: RequestHandler = async ({ request, params }) => {
                 gmp2: sanitizeHtml(data.sampleNumber?.gmp2 || ''),
             },
             samplingTime: {
-                evening: sanitizeHtml(data.samplingTime?.evening || ''),
-                earlyMorning: sanitizeHtml(data.samplingTime?.earlyMorning || ''),
-                gmp2: sanitizeHtml(data.samplingTime?.gmp2 || ''),
-            },
+        		evening: data.samplingTime?.evening && sanitizeHtml(data.samplingTime.evening) !== '' ? sanitizeHtml(data.samplingTime.evening) : null,
+        		earlyMorning: data.samplingTime?.earlyMorning && sanitizeHtml(data.samplingTime.earlyMorning) !== '' ? sanitizeHtml(data.samplingTime.earlyMorning) : null,
+        		gmp2: data.samplingTime?.gmp2 && sanitizeHtml(data.samplingTime.gmp2) !== '' ? sanitizeHtml(data.samplingTime.gmp2) : null,
+    		},
             samplingTemperature: {
                 evening: data.samplingTemperature?.evening ? parseFloat(data.samplingTemperature.evening) : null,
                 earlyMorning: data.samplingTemperature?.earlyMorning ? parseFloat(data.samplingTemperature.earlyMorning) : null,

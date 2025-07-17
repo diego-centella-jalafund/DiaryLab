@@ -152,7 +152,7 @@ export const GET: RequestHandler = async ({ request, url }) => {
 
         const result = await sql`
             SELECT id, sampling_date, user_id, sample_number
-            FROM butter
+            FROM diarylab.butter
             WHERE user_id = ${userId}
               AND sampling_date BETWEEN ${startDateObj} AND ${endDateObj}
             ORDER BY sampling_date ASC

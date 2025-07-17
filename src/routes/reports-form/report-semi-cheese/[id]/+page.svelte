@@ -127,37 +127,37 @@
                     error.set('Report not found');
                     return;
                 }
-                throw new Error(`Failed to fetch data: ${response.status} - ${result}`);
+                throw new Error(`Failed to fetch data: ${response.status} - ${result.data}`);
             }
 
             const result = await response.json();
-            report.set(result);
-            if (result) {
-                date = formatDateForInput(result.samplingDate || '');
-                analysisDate = formatDateForInput(result.analysisDate || '');
-                samplingTime = formatTimeForInput(result.samplingTime || '');
-                responsibleAnalyst = result.responsibleAnalyst || '';
-                sampleNumber = result.sampleNumber || '';
-                productionLot = result.production.batch || '';
-                productionDate = formatDateForInput(result.production.date || '');
-                expirationDate = formatDateForInput(result.production.expirationDate || '');
-                temperature = result.production.temperature || '';
-                coldChamber = result.production.coldChamberTemperature || '';
-                netContent = result.production.netContent || '';
-                fatContent = result.measurements.fatContent || '';
-                phAcidity = result.measurements.phAcidity || '';
-                phTemperature = result.measurements.phTemperature || '';
-                color = result.measurements.color || '';
-                odor = result.measurements.odor || '';
-                taste = result.measurements.flavor || '';
-                appearance = result.measurements.appearance || '';
-                bacteriologicalQuality = result.bacteriological.quality || '';
-                totalMesophilicCount = result.bacteriological.totalMesophilicCount || '';
-                totalColiformCount = result.bacteriological.totalColiformCount || '';
-                fecalColiformCount = result.bacteriological.fecalColiformCount || '';
-                sporeFormingBacteria = result.bacteriological.sporeFormingBacteria || '';
-                escherichiaColi = result.bacteriological.escherichiaColi ? '1' : '0';
-                salmonellaDetection = result.bacteriological.salmonellaDetection ? '1' : '0';
+            report.set(result.data);
+            if (result.data) {
+                date = formatDateForInput(result.data.samplingDate || '');
+                analysisDate = formatDateForInput(result.data.analysisDate || '');
+                samplingTime = formatTimeForInput(result.data.samplingTime || '');
+                responsibleAnalyst = result.data.responsibleAnalyst || '';
+                sampleNumber = result.data.sampleNumber || '';
+                productionLot = result.data.production.batch || '';
+                productionDate = formatDateForInput(result.data.production.date || '');
+                expirationDate = formatDateForInput(result.data.production.expirationDate || '');
+                temperature = result.data.production.temperature || '';
+                coldChamber = result.data.production.coldChamberTemperature || '';
+                netContent = result.data.production.netContent || '';
+                fatContent = result.data.measurements.fatContent || '';
+                phAcidity = result.data.measurements.phAcidity || '';
+                phTemperature = result.data.measurements.phTemperature || '';
+                color = result.data.measurements.color || '';
+                odor = result.data.measurements.odor || '';
+                taste = result.data.measurements.flavor || '';
+                appearance = result.data.measurements.appearance || '';
+                bacteriologicalQuality = result.data.bacteriological.quality || '';
+                totalMesophilicCount = result.data.bacteriological.totalMesophilicCount || '';
+                totalColiformCount = result.data.bacteriological.totalColiformCount || '';
+                fecalColiformCount = result.data.bacteriological.fecalColiformCount || '';
+                sporeFormingBacteria = result.data.bacteriological.sporeFormingBacteria || '';
+                escherichiaColi = result.data.bacteriological.escherichiaColi ? '1' : '0';
+                salmonellaDetection = result.data.bacteriological.salmonellaDetection ? '1' : '0';
             }
         } catch (err) {
             console.error('Fetch error:', err);
@@ -245,19 +245,19 @@
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('Data updated successfully:', result);
-                alert(`Reporte actualizado con éxito!${result.data?.id ? ` ID ${result.data.id}` : ''}`);
+                console.log('Data updated successfully:', result.data);
+                alert(`Reporte actualizado con éxito!${result.data.data?.id ? ` ID ${result.data.data.id}` : ''}`);
                 await fetchReport();
             } else {
                 const result = await response.json();
-                if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
+                if (response.status === 401 && result.data.reason === 'token_invalid' && retryCount < 1) {
                     const refreshed = await authInstance.refreshToken();
                     if (refreshed) {
                         return saveForm(retryCount + 1);
                     }
                 }
                 throw new Error(
-                    `Fallo al actualizar datos: ${response.status} - ${result.message || result.error || response.statusText}`
+                    `Fallo al actualizar datos: ${response.status} - ${result.data.message || result.data.error || response.statusText}`
                 );
             }
         } catch (err) {
@@ -319,14 +319,14 @@
                 goto('/register/semi-cheese');
             } else {
                 const result = await response.json();
-                if (response.status === 401 && result.reason === 'token_invalid' && retryCount < 1) {
+                if (response.status === 401 && result.data.reason === 'token_invalid' && retryCount < 1) {
                     const refreshed = await authInstance.refreshToken();
                     if (refreshed) {
                         return deleteReport(retryCount + 1);
                     }
                 }
                 throw new Error(
-                    `Fallo al eliminar el reporte: ${response.status} - ${result.message || result.error || response.statusText}`
+                    `Fallo al eliminar el reporte: ${response.status} - ${result.data.message || result.data.error || response.statusText}`
                 );
             }
         } catch (err) {
@@ -396,7 +396,7 @@
 
                 <div class="section">
                     <h2>Análisis Físicoquímico</h2>
-                    <table class="results-table">
+                    <table class="result.datas-table">
                         <thead>
                             <tr>
                                 <th>Parámetro</th>
@@ -434,7 +434,7 @@
 
                 <div class="section">
                     <h2>Análisis Organoléptico</h2>
-                    <table class="results-table">
+                    <table class="result.datas-table">
                         <thead>
                             <tr>
                                 <th>Parámetro</th>
@@ -464,7 +464,7 @@
 
                 <div class="section">
                     <h2>Análisis Microbiológico</h2>
-                    <table class="results-table">
+                    <table class="result.datas-table">
                         <thead>
                             <tr>
                                 <th>Parámetro</th>
@@ -530,7 +530,7 @@
 
                 <div class="form-actions">
                     <button type="submit">Guardar</button>
-                    <button type="button" on:click={() => goto('/register/semi-cheese')}>Regresar</button>
+                    <button type="button" on:click={() => goto('/register/semi-ripe-cheese')}>Regresar</button>
                     <button type="button" on:click={deleteReport} class="delete-btn">Eliminar Reporte</button>
                 </div>
             </form>

@@ -177,172 +177,172 @@
 			}
 
 			const result = await response.json();
-			report.set(result);
+			report.set(result.data);
 			if (result) {
-				date = formatDateForInput(result.date || '');
-				analysisDate = formatDateForInput(result.analysisDate || '');
+				date = formatDateForInput(result.data.date || '');
+				analysisDate = formatDateForInput(result.data.analysisDate || '');
 				sample1 = {
-					number: result.samples.sample1.sampleNumber || '',
-					lot: result.samples.sample1.lot || '',
-					flavor: result.samples.sample1.flavor || '',
-					productionDate: formatDateForInput(result.samples.sample1.productionDate || ''),
-					expirationDate: formatDateForInput(result.samples.sample1.expirationDate || ''),
-					samplingTime: formatTimeForInput(result.samples.sample1.samplingTime || ''),
-					productTemperature: result.samples.sample1.productTemperature || '',
-					coldChamberTemperature: result.samples.sample1.coldChamberTemperature || '',
-					netContent: result.samples.sample1.netContent || ''
+					number: result.data.samples.sample1.sampleNumber || '',
+					lot: result.data.samples.sample1.lot || '',
+					flavor: result.data.samples.sample1.flavor || '',
+					productionDate: formatDateForInput(result.data.samples.sample1.productionDate || ''),
+					expirationDate: formatDateForInput(result.data.samples.sample1.expirationDate || ''),
+					samplingTime: formatTimeForInput(result.data.samples.sample1.samplingTime || ''),
+					productTemperature: result.data.samples.sample1.productTemperature || '',
+					coldChamberTemperature: result.data.samples.sample1.coldChamberTemperature || '',
+					netContent: result.data.samples.sample1.netContent || ''
 				};
 				sample2 = {
-					number: result.samples.sample2.sampleNumber || '',
-					lot: result.samples.sample2.lot || '',
-					flavor: result.samples.sample2.flavor || '',
-					productionDate: formatDateForInput(result.samples.sample2.productionDate || ''),
-					expirationDate: formatDateForInput(result.samples.sample2.expirationDate || ''),
-					samplingTime: formatTimeForInput(result.samples.sample2.samplingTime || ''),
-					productTemperature: result.samples.sample2.productTemperature || '',
-					coldChamberTemperature: result.samples.sample2.coldChamberTemperature || '',
-					netContent: result.samples.sample2.netContent || ''
+					number: result.data.samples.sample2.sampleNumber || '',
+					lot: result.data.samples.sample2.lot || '',
+					flavor: result.data.samples.sample2.flavor || '',
+					productionDate: formatDateForInput(result.data.samples.sample2.productionDate || ''),
+					expirationDate: formatDateForInput(result.data.samples.sample2.expirationDate || ''),
+					samplingTime: formatTimeForInput(result.data.samples.sample2.samplingTime || ''),
+					productTemperature: result.data.samples.sample2.productTemperature || '',
+					coldChamberTemperature: result.data.samples.sample2.coldChamberTemperature || '',
+					netContent: result.data.samples.sample2.netContent || ''
 				};
 				sample3 = {
-					number: result.samples.sample3.sampleNumber || '',
-					lot: result.samples.sample3.lot || '',
-					flavor: result.samples.sample3.flavor || '',
-					productionDate: formatDateForInput(result.samples.sample3.productionDate || ''),
-					expirationDate: formatDateForInput(result.samples.sample3.expirationDate || ''),
-					samplingTime: formatTimeForInput(result.samples.sample3.samplingTime || ''),
-					productTemperature: result.samples.sample3.productTemperature || '',
-					coldChamberTemperature: result.samples.sample3.coldChamberTemperature || '',
-					netContent: result.samples.sample3.netContent || ''
+					number: result.data.samples.sample3.sampleNumber || '',
+					lot: result.data.samples.sample3.lot || '',
+					flavor: result.data.samples.sample3.flavor || '',
+					productionDate: formatDateForInput(result.data.samples.sample3.productionDate || ''),
+					expirationDate: formatDateForInput(result.data.samples.sample3.expirationDate || ''),
+					samplingTime: formatTimeForInput(result.data.samples.sample3.samplingTime || ''),
+					productTemperature: result.data.samples.sample3.productTemperature || '',
+					coldChamberTemperature: result.data.samples.sample3.coldChamberTemperature || '',
+					netContent: result.data.samples.sample3.netContent || ''
 				};
 				sample4 = {
-					number: result.samples.sample4.sampleNumber || '',
-					lot: result.samples.sample4.lot || '',
-					flavor: result.samples.sample4.flavor || '',
-					productionDate: formatDateForInput(result.samples.sample4.productionDate || ''),
-					expirationDate: formatDateForInput(result.samples.sample4.expirationDate || ''),
-					samplingTime: formatTimeForInput(result.samples.sample4.samplingTime || ''),
-					productTemperature: result.samples.sample4.productTemperature || '',
-					coldChamberTemperature: result.samples.sample4.coldChamberTemperature || '',
-					netContent: result.samples.sample4.netContent || ''
+					number: result.data.samples.sample4.sampleNumber || '',
+					lot: result.data.samples.sample4.lot || '',
+					flavor: result.data.samples.sample4.flavor || '',
+					productionDate: formatDateForInput(result.data.samples.sample4.productionDate || ''),
+					expirationDate: formatDateForInput(result.data.samples.sample4.expirationDate || ''),
+					samplingTime: formatTimeForInput(result.data.samples.sample4.samplingTime || ''),
+					productTemperature: result.data.samples.sample4.productTemperature || '',
+					coldChamberTemperature: result.data.samples.sample4.coldChamberTemperature || '',
+					netContent: result.data.samples.sample4.netContent || ''
 				};
 				sample5 = {
-					number: result.samples.sample5.sampleNumber || '',
-					lot: result.samples.sample5.lot || '',
-					flavor: result.samples.sample5.flavor || '',
-					productionDate: formatDateForInput(result.samples.sample5.productionDate || ''),
-					expirationDate: formatDateForInput(result.samples.sample5.expirationDate || ''),
-					samplingTime: formatTimeForInput(result.samples.sample5.samplingTime || ''),
-					productTemperature: result.samples.sample5.productTemperature || '',
-					coldChamberTemperature: result.samples.sample5.coldChamberTemperature || '',
-					netContent: result.samples.sample5.netContent || ''
+					number: result.data.samples.sample5.sampleNumber || '',
+					lot: result.data.samples.sample5.lot || '',
+					flavor: result.data.samples.sample5.flavor || '',
+					productionDate: formatDateForInput(result.data.samples.sample5.productionDate || ''),
+					expirationDate: formatDateForInput(result.data.samples.sample5.expirationDate || ''),
+					samplingTime: formatTimeForInput(result.data.samples.sample5.samplingTime || ''),
+					productTemperature: result.data.samples.sample5.productTemperature || '',
+					coldChamberTemperature: result.data.samples.sample5.coldChamberTemperature || '',
+					netContent: result.data.samples.sample5.netContent || ''
 				};
 				fatContent = {
-					m1: result.measurements.fatContent.m1 || '',
-					m2: result.measurements.fatContent.m2 || '',
-					m3: result.measurements.fatContent.m3 || '',
-					m4: result.measurements.fatContent.m4 || '',
-					m5: result.measurements.fatContent.m5 || '',
-					observation: result.measurements.fatContent.observation || ''
+					m1: result.data.measurements.fatContent.m1 || '',
+					m2: result.data.measurements.fatContent.m2 || '',
+					m3: result.data.measurements.fatContent.m3 || '',
+					m4: result.data.measurements.fatContent.m4 || '',
+					m5: result.data.measurements.fatContent.m5 || '',
+					observation: result.data.measurements.fatContent.observation || ''
 				};
 				sng = {
-					m1: result.measurements.sng.m1 || '',
-					m2: result.measurements.sng.m2 || '',
-					m3: result.measurements.sng.m3 || '',
-					m4: result.measurements.sng.m4 || '',
-					m5: result.measurements.sng.m5 || '',
-					observation: result.measurements.sng.observation || ''
+					m1: result.data.measurements.sng.m1 || '',
+					m2: result.data.measurements.sng.m2 || '',
+					m3: result.data.measurements.sng.m3 || '',
+					m4: result.data.measurements.sng.m4 || '',
+					m5: result.data.measurements.sng.m5 || '',
+					observation: result.data.measurements.sng.observation || ''
 				};
 				titratableAcidity = {
-					m1: result.measurements.titratableAcidity.m1 || '',
-					m2: result.measurements.titratableAcidity.m2 || '',
-					m3: result.measurements.titratableAcidity.m3 || '',
-					m4: result.measurements.titratableAcidity.m4 || '',
-					m5: result.measurements.titratableAcidity.m5 || '',
-					observation: result.measurements.titratableAcidity.observation || ''
+					m1: result.data.measurements.titratableAcidity.m1 || '',
+					m2: result.data.measurements.titratableAcidity.m2 || '',
+					m3: result.data.measurements.titratableAcidity.m3 || '',
+					m4: result.data.measurements.titratableAcidity.m4 || '',
+					m5: result.data.measurements.titratableAcidity.m5 || '',
+					observation: result.data.measurements.titratableAcidity.observation || ''
 				};
 				ph = {
-					m1: result.measurements.ph.m1 || '',
-					m2: result.measurements.ph.m2 || '',
-					m3: result.measurements.ph.m3 || '',
-					m4: result.measurements.ph.m4 || '',
-					m5: result.measurements.ph.m5 || '',
-					observation: result.measurements.ph.observation || ''
+					m1: result.data.measurements.ph.m1 || '',
+					m2: result.data.measurements.ph.m2 || '',
+					m3: result.data.measurements.ph.m3 || '',
+					m4: result.data.measurements.ph.m4 || '',
+					m5: result.data.measurements.ph.m5 || '',
+					observation: result.data.measurements.ph.observation || ''
 				};
 				phTemperature = {
-					m1: result.measurements.phTemperature.m1 || '',
-					m2: result.measurements.phTemperature.m2 || '',
-					m3: result.measurements.phTemperature.m3 || '',
-					m4: result.measurements.phTemperature.m4 || '',
-					m5: result.measurements.phTemperature.m5 || '',
-					observation: result.measurements.phTemperature.observation || ''
+					m1: result.data.measurements.phTemperature.m1 || '',
+					m2: result.data.measurements.phTemperature.m2 || '',
+					m3: result.data.measurements.phTemperature.m3 || '',
+					m4: result.data.measurements.phTemperature.m4 || '',
+					m5: result.data.measurements.phTemperature.m5 || '',
+					observation: result.data.measurements.phTemperature.observation || ''
 				};
 				color = {
-					m1: result.measurements.color.m1 || '',
-					m2: result.measurements.color.m2 || '',
-					m3: result.measurements.color.m3 || '',
-					m4: result.measurements.color.m4 || '',
-					m5: result.measurements.color.m5 || '',
-					observation: result.measurements.color.observation || ''
+					m1: result.data.measurements.color.m1 || '',
+					m2: result.data.measurements.color.m2 || '',
+					m3: result.data.measurements.color.m3 || '',
+					m4: result.data.measurements.color.m4 || '',
+					m5: result.data.measurements.color.m5 || '',
+					observation: result.data.measurements.color.observation || ''
 				};
 				smell = {
-					m1: result.measurements.smell.m1 || '',
-					m2: result.measurements.smell.m2 || '',
-					m3: result.measurements.smell.m3 || '',
-					m4: result.measurements.smell.m4 || '',
-					m5: result.measurements.smell.m5 || '',
-					observation: result.measurements.smell.observation || ''
+					m1: result.data.measurements.smell.m1 || '',
+					m2: result.data.measurements.smell.m2 || '',
+					m3: result.data.measurements.smell.m3 || '',
+					m4: result.data.measurements.smell.m4 || '',
+					m5: result.data.measurements.smell.m5 || '',
+					observation: result.data.measurements.smell.observation || ''
 				};
 				taste = {
-					m1: result.measurements.taste.m1 || '',
-					m2: result.measurements.taste.m2 || '',
-					m3: result.measurements.taste.m3 || '',
-					m4: result.measurements.taste.m4 || '',
-					m5: result.measurements.taste.m5 || '',
-					observation: result.measurements.taste.observation || ''
+					m1: result.data.measurements.taste.m1 || '',
+					m2: result.data.measurements.taste.m2 || '',
+					m3: result.data.measurements.taste.m3 || '',
+					m4: result.data.measurements.taste.m4 || '',
+					m5: result.data.measurements.taste.m5 || '',
+					observation: result.data.measurements.taste.observation || ''
 				};
 				appearance = {
-					m1: result.measurements.appearance.m1 || '',
-					m2: result.measurements.appearance.m2 || '',
-					m3: result.measurements.appearance.m3 || '',
-					m4: result.measurements.appearance.m4 || '',
-					m5: result.measurements.appearance.m5 || '',
-					observation: result.measurements.appearance.observation || ''
+					m1: result.data.measurements.appearance.m1 || '',
+					m2: result.data.measurements.appearance.m2 || '',
+					m3: result.data.measurements.appearance.m3 || '',
+					m4: result.data.measurements.appearance.m4 || '',
+					m5: result.data.measurements.appearance.m5 || '',
+					observation: result.data.measurements.appearance.observation || ''
 				};
 				probioticCount = {
-					m1: result.measurements.probioticCount.m1 || '',
-					m2: result.measurements.probioticCount.m2 || '',
-					m3: result.measurements.probioticCount.m3 || '',
-					m4: result.measurements.probioticCount.m4 || '',
-					m5: result.measurements.probioticCount.m5 || '',
-					observation: result.measurements.probioticCount.observation || ''
+					m1: result.data.measurements.probioticCount.m1 || '',
+					m2: result.data.measurements.probioticCount.m2 || '',
+					m3: result.data.measurements.probioticCount.m3 || '',
+					m4: result.data.measurements.probioticCount.m4 || '',
+					m5: result.data.measurements.probioticCount.m5 || '',
+					observation: result.data.measurements.probioticCount.observation || ''
 				};
 				coliformCount = {
-					m1: result.measurements.coliformCount.m1 || '',
-					m2: result.measurements.coliformCount.m2 || '',
-					m3: result.measurements.coliformCount.m3 || '',
-					m4: result.measurements.coliformCount.m4 || '',
-					m5: result.measurements.coliformCount.m5 || ''
+					m1: result.data.measurements.coliformCount.m1 || '',
+					m2: result.data.measurements.coliformCount.m2 || '',
+					m3: result.data.measurements.coliformCount.m3 || '',
+					m4: result.data.measurements.coliformCount.m4 || '',
+					m5: result.data.measurements.coliformCount.m5 || ''
 				};
 				fecalColiformCount = {
-					m1: result.measurements.fecalColiformCount.m1 || '',
-					m2: result.measurements.fecalColiformCount.m2 || '',
-					m3: result.measurements.fecalColiformCount.m3 || '',
-					m4: result.measurements.fecalColiformCount.m4 || '',
-					m5: result.measurements.fecalColiformCount.m5 || ''
+					m1: result.data.measurements.fecalColiformCount.m1 || '',
+					m2: result.data.measurements.fecalColiformCount.m2 || '',
+					m3: result.data.measurements.fecalColiformCount.m3 || '',
+					m4: result.data.measurements.fecalColiformCount.m4 || '',
+					m5: result.data.measurements.fecalColiformCount.m5 || ''
 				};
 				eColiPresence = {
-					m1: result.measurements.eColiPresence.m1 || '',
-					m2: result.measurements.eColiPresence.m2 || '',
-					m3: result.measurements.eColiPresence.m3 || '',
-					m4: result.measurements.eColiPresence.m4 || '',
-					m5: result.measurements.eColiPresence.m5 || ''
+					m1: result.data.measurements.eColiPresence.m1 || '',
+					m2: result.data.measurements.eColiPresence.m2 || '',
+					m3: result.data.measurements.eColiPresence.m3 || '',
+					m4: result.data.measurements.eColiPresence.m4 || '',
+					m5: result.data.measurements.eColiPresence.m5 || ''
 				};
 				moldYeastCount = {
-					m1: result.measurements.moldYeastCount.m1 || '',
-					m2: result.measurements.moldYeastCount.m2 || '',
-					m3: result.measurements.moldYeastCount.m3 || '',
-					m4: result.measurements.moldYeastCount.m4 || '',
-					m5: result.measurements.moldYeastCount.m5 || ''
+					m1: result.data.measurements.moldYeastCount.m1 || '',
+					m2: result.data.measurements.moldYeastCount.m2 || '',
+					m3: result.data.measurements.moldYeastCount.m3 || '',
+					m4: result.data.measurements.moldYeastCount.m4 || '',
+					m5: result.data.measurements.moldYeastCount.m5 || ''
 				};
 			}
 		} catch (err) {
