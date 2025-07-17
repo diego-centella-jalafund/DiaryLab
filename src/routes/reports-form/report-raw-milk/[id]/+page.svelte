@@ -121,36 +121,37 @@
 
 			const result = await response.json();
 			console.log('Fetched report:', result);
-			report.set(result);
+			report.set(result.data);
 			if (result) {
 				formData = {
-					date: formatDateForInput(result.date),
-					analysisDate: formatDateForInput(result.analysisDate),
-					sampleNumber: result.sampleNumber || { evening: '', earlyMorning: '', gmp2: '' },
+					date: formatDateForInput(result.data.date),
+					analysisDate: formatDateForInput(result.data.analysisDate),
+					sampleNumber: result.data.sampleNumber || { evening: '', earlyMorning: '', gmp2: '' },
 					samplingTime: {
-						evening: formatTimeForInput(result.samplingTime?.evening || ''),
-						earlyMorning: formatTimeForInput(result.samplingTime?.earlyMorning || ''),
-						gmp2: formatTimeForInput(result.samplingTime?.gmp2 || '')
+						evening: formatTimeForInput(result.data.samplingTime?.evening || ''),
+						earlyMorning: formatTimeForInput(result.data.samplingTime?.earlyMorning || ''),
+						gmp2: formatTimeForInput(result.data.samplingTime?.gmp2 || '')
 					},
-					samplingTemperature: result.samplingTemperature || {
+					samplingTemperature: result.data.samplingTemperature || {
 						evening: '',
 						earlyMorning: '',
 						gmp2: ''
 					},
-					ph20C: result.ph20C || { evening: '', earlyMorning: '', gmp2: '' },
-					temperature: result.temperature || { evening: '', earlyMorning: '', gmp2: '' },
-					titratableAcidity: result.titratableAcidity || {
+					ph20C: result.data.ph20C || { evening: '', earlyMorning: '', gmp2: '' },
+					temperature: result.data.temperature || { evening: '', earlyMorning: '', gmp2: '' },
+					titratableAcidity: result.data.titratableAcidity || {
 						evening: '',
 						earlyMorning: '',
 						gmp2: ''
 					},
-					density20C: result.density20C || { evening: '', earlyMorning: '', gmp2: '' },
-					fatContent: result.fatContent || { evening: '', earlyMorning: '', gmp2: '' },
-					nonFatSolids: result.nonFatSolids || { evening: '', earlyMorning: '', gmp2: '' },
-					alcoholTest: result.alcoholTest || { evening: '', earlyMorning: '', gmp2: '' },
-					tram: result.tram || { evening: '', earlyMorning: '', gmp2: '' }
+					density20C: result.data.density20C || { evening: '', earlyMorning: '', gmp2: '' },
+					fatContent: result.data.fatContent || { evening: '', earlyMorning: '', gmp2: '' },
+					nonFatSolids: result.data.nonFatSolids || { evening: '', earlyMorning: '', gmp2: '' },
+					alcoholTest: result.data.alcoholTest || { evening: '', earlyMorning: '', gmp2: '' },
+					tram: result.data.tram || { evening: '', earlyMorning: '', gmp2: '' }
 				};
 			}
+		console.log('Initialized formData:', formData);
 		} catch (err) {
 			console.error('Fetch error:', err);
 			error.set(`Error fetching report: ${err.message}`);
@@ -317,11 +318,10 @@
 			<h1>Reporte de analisis de Leche cruda (ID: {data.id})</h1>
 
 			{#if $loading}
-				<p>Loading report...</p>
-			{:else if $error}
-				<p class="text-red-600">{$error}</p>
-			{:else if $report && $report.date && $report.sampleNumber && $report.samplingTime && $report.samplingTemperature && $report.ph20C && $report.temperature && $report.titratableAcidity && $report.density20C && $report.fatContent && $report.nonFatSolids && $report.alcoholTest && $report.tram}
-				{console.log('Rendering report:', $report)}
+    		<p>Loading report...</p>
+				{:else if $report}
+    		{console.log('Rendering report:', $report)}
+			<!-- {:else if $report && $report.date && $report.sampleNumber && $report.samplingTime && $report.samplingTemperature && $report.ph20C && $report.temperature && $report.titratableAcidity && $report.density20C && $report.fatContent && $report.nonFatSolids && $report.alcoholTest && $report.tram} -->
 				<form on:submit|preventDefault={saveReport}>
 					<div class="date-section">
 						<div class="form-row">
