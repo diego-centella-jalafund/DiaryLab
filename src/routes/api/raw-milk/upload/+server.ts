@@ -9,7 +9,7 @@ import jwkToPem from 'jwk-to-pem';
 
 const prisma = new PrismaClient();
 
-const tempDir = path.join(process.cwd(), 'temp');
+const tempDir = path.join('/tmp', 'temp');
 const cleanedFileName = 'fileTest_cleaned.csv';
 
 async function getPublicKey(): Promise<string> {
