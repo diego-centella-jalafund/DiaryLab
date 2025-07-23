@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ request }) => {
             return json({ error: 'Only CSV files are allowed.' }, { status: 400 });
         }
 
-        const response = await fetch('https://pyhost-mwbc.onrender.com', {
+        const response = await fetch('https://pyhost-mwbc.onrender.com/process-csv', {
             method: 'POST',
             body: formData,
         });
