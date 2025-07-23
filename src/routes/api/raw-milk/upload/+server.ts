@@ -1,16 +1,10 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { PrismaClient } from '@prisma/client';
-import { exec } from 'child_process';
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import Papa from 'papaparse';
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
 
 const prisma = new PrismaClient();
-
-const tempDir = path.join('/tmp', 'temp');
-const cleanedFileName = 'fileTest_cleaned.csv';
 
 async function getPublicKey(): Promise<string> {
     const response = await fetch(`${process.env.KEYCLOAK_URL}/realms/diarylab/protocol/openid-connect/certs`);
@@ -31,7 +25,6 @@ let KEYCLOAK_PUBLIC_KEY: string | null = null;
 
 export const POST: RequestHandler = async ({ request }) => {
     try {
-        await fs.mkdir(tempDir, { recursive: true });
         const formData = await request.formData();
         const csvFile = formData.get('csvFile');
 
@@ -39,35 +32,22 @@ export const POST: RequestHandler = async ({ request }) => {
             return json({ error: 'Only CSV files are allowed.' }, { status: 400 });
         }
 
-        const tempFilePath = path.join(tempDir, csvFile.name);
-        const arrayBuffer = await csvFile.arrayBuffer();
-        await fs.writeFile(tempFilePath, Buffer.from(arrayBuffer));
-
-        const pythonScriptPath = path.join(process.cwd(), 'src/clean_automate_csv.py');
-        const cleanedFilePath = path.join(tempDir, cleanedFileName);
-
-        const pythonCommand = `python3 ${pythonScriptPath} ${tempFilePath}`;
-        await new Promise((resolve, reject) => {
-            exec(pythonCommand, { cwd: tempDir }, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Error executing Python script: ${error.message}`);
-                    reject(error);
-                    return;
-                }
-                if (stderr) {
-                    console.error(`Python script stderr: ${stderr}`);
-                    reject(new Error(stderr));
-                    return;
-                }
-                console.log(`Python script stdout: ${stdout}`);
-                resolve(stdout);
-            });
+        const response = await fetch('https://pyhost-mwbc.onrender.com', {
+            method: 'POST',
+            body: formData,
         });
 
-        await fs.access(cleanedFilePath);
-        const cleanedCsvData = await fs.readFile(cleanedFilePath, 'utf-8');
+        if (!response.ok) {
+            throw new Error(`Microservice error: ${response.status} ${response.statusText}`);
+        }
 
-        const parsed = Papa.parse(cleanedCsvData, {
+        const { cleaned_csv } = await response.json();
+
+        if (!cleaned_csv) {
+            return json({ error: 'No data returned from the microservice.' }, { status: 500 });
+        }
+
+        const parsed = Papa.parse(cleaned_csv, {
             header: true,
             skipEmptyLines: true,
             transformHeader: (header: string) => header.trim(),
@@ -116,94 +96,85 @@ export const POST: RequestHandler = async ({ request }) => {
             'tram_evening', 'tram_early_morning', 'tram_gmp2'
         ];
 
-        
         const authHeader = request.headers.get('Authorization');
-                if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                    return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
-                }
-        
-                const token = authHeader.replace('Bearer ', '');
-                let decodedToken;
-                try {
-                    decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as { sub: string };
-                } catch (error) {
-                    console.error('Token verification failed:', error);
-                    return json({ error: 'Invalid token', reason: 'token_invalid' }, { status: 401 });
-                }
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return json({ error: 'Missing or invalid Authorization header' }, { status: 401 });
+        }
 
-                const dataToInsert = parsed.data.map((row: { [key: string]: string }, index: number) => {
-                  const record: { [key: string]: string | number | Date | null } = {};
-                  for (const column of expectedColumns) {
-                      const value = row[column];
-                      if (value === '' || value === undefined || value === null) {
-                          record[column] = null;
-                      } else if (column === 'date' || column === 'analysis_date') {
-                          const dateStr = value.trim();
-                          const [year, month, day] = dateStr.split('-').map(Number);
-                          const date = new Date(year, month - 1, day);
-                          if (isNaN(date.getTime()) || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-                              console.warn(`Invalid date value at row ${index + 2} for column ${column}: "${value}"`);
-                              record[column] = null;
-                              continue;
-                          }
-                          record[column] = date;
-                      } else if (column === 'evening_sampling_time' || column === 'early_morning_sampling_time' || column === 'gmp2_sampling_time') {
-                          const timeStr = value.trim();
-                          const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM)$/i);
-                          if (!timeMatch) {
-                              console.warn(`Invalid time value at row ${index + 2} for column ${column}: "${value}"`);
-                              record[column] = null;
-                              continue;
-                          }
-      
-                          const [, hours, minutes, seconds, period] = timeMatch;
-                          let hour = parseInt(hours, 10);
-                          const minute = parseInt(minutes, 10);
-                          const second = parseInt(seconds, 10);
-                          if (period.toUpperCase() === 'PM' && hour !== 12) {
-                              hour += 12;
-                          } else if (period.toUpperCase() === 'AM' && hour === 12) {
-                              hour = 0;
-                          }
-                          if (hour > 23 || minute > 59 || second > 59) {
-                              console.warn(`Time value out of range at row ${index + 2} for column ${column}: "${value}"`);
-                              record[column] = null;
-                              continue;
-                          }
-      
-                          const baseDate = record['date'] instanceof Date ? record['date'] : new Date('2024-01-01T00:00:00Z');
-                          const timeDate = new Date(baseDate);
-                          timeDate.setUTCHours(hour, minute, second, 0); 
-      
-                          record[column] = timeDate; 
-                      } else if (numericColumns.includes(column)) {
-                          const floatValue = parseFloat(value);
-                          record[column] = isNaN(floatValue) ? null : floatValue;
-                      } else if (stringColumns.includes(column)) {
-                          record[column] = String(value);
-                      } else {
-                          record[column] = String(value);
-                      }
-                  }
-                  record['user_id'] = decodedToken.sub;
-                  return record;
-              });
+        const token = authHeader.replace('Bearer ', '');
+        let decodedToken;
+        try {
+            decodedToken = jwt.verify(token, KEYCLOAK_PUBLIC_KEY, { algorithms: ['RS256'] }) as { sub: string };
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            return json({ error: 'Invalid token', reason: 'token_invalid' }, { status: 401 });
+        }
+
+        const dataToInsert = parsed.data.map((row: { [key: string]: string }, index: number) => {
+            const record: { [key: string]: string | number | Date | null } = {};
+            for (const column of expectedColumns) {
+                const value = row[column];
+                if (value === '' || value === undefined || value === null) {
+                    record[column] = null;
+                } else if (column === 'date' || column === 'analysis_date') {
+                    const dateStr = value.trim();
+                    const [year, month, day] = dateStr.split('-').map(Number);
+                    const date = new Date(year, month - 1, day);
+                    if (isNaN(date.getTime()) || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                        console.warn(`Invalid date value at row ${index + 2} for column ${column}: "${value}"`);
+                        record[column] = null;
+                        continue;
+                    }
+                    record[column] = date;
+                } else if (column === 'evening_sampling_time' || column === 'early_morning_sampling_time' || column === 'gmp2_sampling_time') {
+                    const timeStr = value.trim();
+                    const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM)$/i);
+                    if (!timeMatch) {
+                        console.warn(`Invalid time value at row ${index + 2} for column ${column}: "${value}"`);
+                        record[column] = null;
+                        continue;
+                    }
+
+                    const [, hours, minutes, seconds, period] = timeMatch;
+                    let hour = parseInt(hours, 10);
+                    const minute = parseInt(minutes, 10);
+                    const second = parseInt(seconds, 10);
+                    if (period.toUpperCase() === 'PM' && hour !== 12) {
+                        hour += 12;
+                    } else if (period.toUpperCase() === 'AM' && hour === 12) {
+                        hour = 0;
+                    }
+                    if (hour > 23 || minute > 59 || second > 59) {
+                        console.warn(`Time value out of range at row ${index + 2} for column ${column}: "${value}"`);
+                        record[column] = null;
+                        continue;
+                    }
+
+                    const baseDate = record['date'] instanceof Date ? record['date'] : new Date('2024-01-01T00:00:00Z');
+                    const timeDate = new Date(baseDate);
+                    timeDate.setUTCHours(hour, minute, second, 0);
+                    record[column] = timeDate;
+                } else if (numericColumns.includes(column)) {
+                    const floatValue = parseFloat(value);
+                    record[column] = isNaN(floatValue) ? null : floatValue;
+                } else if (stringColumns.includes(column)) {
+                    record[column] = String(value);
+                } else {
+                    record[column] = String(value);
+                }
+            }
+            record['user_id'] = decodedToken.sub;
+            return record;
+        });
+
         console.log('Data to insert:', dataToInsert);
 
         await prisma.raw_milk.createMany({ data: dataToInsert });
-        await fs.unlink(tempFilePath);
-        await fs.unlink(cleanedFilePath);
 
         return json({ message: 'File uploaded', rowCount: dataToInsert.length });
     } catch (error: unknown) {
         console.error('Error processing CSV:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        try {
-            await fs.unlink(path.join(tempDir, csvFile.name)).catch(() => {});
-            await fs.unlink(path.join(tempDir, cleanedFileName)).catch(() => {});
-        } catch (cleanupError) {
-            console.error('Error cleaning up temp files:', cleanupError);
-        }
         return json({ error: `Error processing file: ${errorMessage}` }, { status: 500 });
     } finally {
         await prisma.$disconnect();
