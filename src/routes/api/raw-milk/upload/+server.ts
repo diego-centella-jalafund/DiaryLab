@@ -31,10 +31,11 @@ export const POST: RequestHandler = async ({ request }) => {
         if (!csvFile || !(csvFile instanceof File) || !csvFile.name.endsWith('.csv')) {
             return json({ error: 'Only CSV files are allowed.' }, { status: 400 });
         }
-
+        const microserviceFormData = new FormData();
+        microserviceFormData.append('file', csvFile);
         const response = await fetch('https://pyhost-mwbc.onrender.com/process-csv', {
             method: 'POST',
-            body: formData,
+            body: microserviceFormData,
         });
 
         if (!response.ok) {
