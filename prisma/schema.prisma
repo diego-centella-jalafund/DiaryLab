@@ -1,6 +1,7 @@
 datasource db {
   provider = "postgresql"
   url      = env("CUSTOM_DATABASE_URL")
+  schemas = ["diarylab"] 
 }
 
 generator client {
