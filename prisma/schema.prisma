@@ -46,4 +46,6 @@ model raw_milk {
   tram_gmp2                   String? @db.VarChar(50)
   created_at                  DateTime? @default(now()) @db.Timestamp
   user_id                     String   @db.Text
+  @@map("raw_milk") 
+  @@schema("diarylab")
 }
