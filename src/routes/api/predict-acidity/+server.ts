@@ -1,36 +1,38 @@
 import { json } from '@sveltejs/kit';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execPromise = promisify(exec);
 
 export async function GET() {
     try {
-        const { stdout, stderr } = await execPromise('python3 src/routes/api/predict-acidity/prediction-model.py', { cwd: process.cwd() });
+        const response = await fetch('https://pyhost-mwbc.onrender.com/predict-acidity', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
 
-        if (stderr) {
-            throw new Error(`Error on the Python script: ${stderr}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Microservice error: ${response.status} ${response.statusText}: ${errorText}`);
         }
 
-        const output = stdout.trim();
-        if (!output) {
-            throw new Error('not output for script');
+        const { predictions } = await response.json();
+
+        if (!predictions || !Array.isArray(predictions) || predictions.length === 0) {
+            throw new Error('No predictions returned from the microservice');
         }
 
-        const predictions = output.split('\n').map(line => {
-            const [date, acidity] = line.split(', Titratable Acidity Predicted: ');
-            if (!date || !acidity) {
-                throw new Error(`invalid format: ${line}`);
+        const formattedPredictions = predictions.map((pred: any) => {
+            if (!pred.date || typeof pred.titratable_acidity_predicted !== 'number') {
+                throw new Error(`Invalid prediction format: ${JSON.stringify(pred)}`);
             }
             return {
-                date: date.replace('Date: ', ''),
-                titratable_acidity_predicted: parseFloat(acidity)
+                date: pred.date,
+                titratable_acidity_predicted: pred.titratable_acidity_predicted
             };
         });
 
-        return json({ predictions }, { status: 200 });
-    } catch (error) {
-
-        return json({ error: error.message }, { status: 500 });
+        return json({ predictions: formattedPredictions }, { status: 200 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return json({ error: errorMessage }, { status: 500 });
     }
 }
