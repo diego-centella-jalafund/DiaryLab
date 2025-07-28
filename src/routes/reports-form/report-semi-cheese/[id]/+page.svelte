@@ -316,7 +316,7 @@
 
             if (response.ok) {
                 alert('Reporte eliminado con éxito!');
-                goto('/register/semi-cheese');
+                goto('/register/semi-ripe-cheese');
             } else {
                 const result = await response.json();
                 if (response.status === 401 && result.data.reason === 'token_invalid' && retryCount < 1) {
